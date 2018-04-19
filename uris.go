@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -48,7 +49,7 @@ func clientToServerURI(uri lsp.DocumentURI, cacheDir string) lsp.DocumentURI {
 
 	// We assume that any path provided by the client to the server
 	// is a project path that is relative to '/'
-	parsedURI.Path = filepath.Join(cacheDir, parsedURI.Path)
+	parsedURI.Path = filepath.Join(cacheDir, filepath.FromSlash(parsedURI.Path))
 	return lsp.DocumentURI(parsedURI.String())
 }
 
@@ -67,8 +68,8 @@ func serverToClientURI(uri lsp.DocumentURI, cacheDir string) lsp.DocumentURI {
 	// Only rewrite uris that point to a location in the workspace cache. If it does
 	// point to a cache location, then we assume that the path points to a location in the
 	// project.
-	if pathHasPrefix(parsedURI.Path, cacheDir) {
-		parsedURI.Path = filepath.Join("/", pathTrimPrefix(parsedURI.Path, cacheDir))
+	if filepathHasPrefix(parsedURI.Path, cacheDir) {
+		parsedURI.Path = path.Join("/", filepath.ToSlash(filepathTrimPrefix(parsedURI.Path, cacheDir)))
 	}
 
 	return lsp.DocumentURI(parsedURI.String())
@@ -87,7 +88,7 @@ func probablyFileURI(candidate *url.URL) bool {
 }
 
 // copied from sourcegraph/go-langserver/util.go
-func pathHasPrefix(s, prefix string) bool {
+func filepathHasPrefix(s, prefix string) bool {
 	var prefixSlash string
 	if prefix != "" && !strings.HasSuffix(prefix, string(os.PathSeparator)) {
 		prefixSlash = prefix + string(os.PathSeparator)
@@ -96,7 +97,7 @@ func pathHasPrefix(s, prefix string) bool {
 }
 
 // copied from sourcegraph/go-langserver/util.go
-func pathTrimPrefix(s, prefix string) string {
+func filepathTrimPrefix(s, prefix string) string {
 	if s == prefix {
 		return ""
 	}

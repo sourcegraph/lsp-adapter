@@ -8,9 +8,11 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -59,26 +61,26 @@ func TestClone(t *testing.T) {
 
 		discoveredFiles := make(map[string]string)
 
-		err = filepath.Walk(baseDir, func(path string, info os.FileInfo, err error) error {
+		err = filepath.Walk(baseDir, func(currPath string, info os.FileInfo, err error) error {
 
 			if err != nil {
-				return errors.Wrapf(err, "when walking walkFunc for path %s", path)
+				return errors.Wrapf(err, "when walking walkFunc for path %s", currPath)
 			}
 
 			if info.IsDir() {
 				return nil
 			}
 
-			content, err := ioutil.ReadFile(path)
+			content, err := ioutil.ReadFile(currPath)
 			if err != nil {
-				return errors.Wrapf(err, "when calling readFile for path %s", path)
+				return errors.Wrapf(err, "when calling readFile for path %s", currPath)
 			}
 
-			if pathHasPrefix(path, baseDir) {
-				path = filepath.Join("/", pathTrimPrefix(path, baseDir))
+			if filepathHasPrefix(currPath, baseDir) {
+				currPath = path.Join("/", filepath.ToSlash(filepathTrimPrefix(currPath, baseDir)))
 			}
 
-			discoveredFiles[path] = string(content)
+			discoveredFiles[currPath] = string(content)
 
 			return nil
 		})
@@ -401,3 +403,11 @@ func (client *testFS) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *json
 type noopHandler struct{}
 
 func (noopHandler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {}
+
+func pathHasPrefix(s, prefix string) bool {
+	var prefixSlash string
+	if prefix != "" && !strings.HasSuffix(prefix, "/") {
+		prefixSlash = prefix + "/"
+	}
+	return s == prefix || strings.HasPrefix(s, prefixSlash)
+}
