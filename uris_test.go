@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/url"
+	"path"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -42,7 +43,7 @@ func TestProbablyFileURI(t *testing.T) {
 func TestClientToServerURI(t *testing.T) {
 	cacheDir := "/tmp"
 	projectFileLoc := "/a.py"
-	cacheFileLoc := filepath.Join(cacheDir, projectFileLoc)
+	cacheFileLoc := path.Join(cacheDir, projectFileLoc)
 
 	tests := map[string]string{
 		"file://" + projectFileLoc: "file://" + cacheFileLoc,
@@ -63,10 +64,21 @@ func TestClientToServerURI(t *testing.T) {
 		"":        "",
 	}
 
-	for clientURI, rewrittenURI := range tests {
+	for clientURI, expectedServerURI := range tests {
+		parsedServerURI, err := url.Parse(expectedServerURI)
+		if err != nil {
+			t.Fatalf("got error %s when parsing expectedServerURI uri %s", err, expectedServerURI)
+		}
+
+		// Convert serverURI test fixture to look like a system filePath
+		if parsedServerURI.Path != "" {
+			parsedServerURI.Path = filepath.FromSlash(parsedServerURI.Path)
+			expectedServerURI = parsedServerURI.String()
+		}
+
 		actual := clientToServerURI(lsp.DocumentURI(clientURI), cacheDir)
-		if actual != lsp.DocumentURI(rewrittenURI) {
-			t.Errorf("for uri %s, expected %s, actual %s", clientURI, rewrittenURI, actual)
+		if actual != lsp.DocumentURI(expectedServerURI) {
+			t.Errorf("for uri %s, expected %s, actual %s", clientURI, expectedServerURI, actual)
 		}
 	}
 }
@@ -74,7 +86,7 @@ func TestClientToServerURI(t *testing.T) {
 func TestServerToClientURI(t *testing.T) {
 	cacheDir := "/tmp"
 	projectFileLoc := "/a.py"
-	cacheFileLoc := filepath.Join(cacheDir, projectFileLoc)
+	cacheFileLoc := path.Join(cacheDir, projectFileLoc)
 
 	tests := map[string]string{
 		"file://" + cacheFileLoc: "file://" + projectFileLoc,
@@ -101,10 +113,21 @@ func TestServerToClientURI(t *testing.T) {
 		"git://" + cacheFileLoc + "?SHA": "git://" + cacheFileLoc + "?SHA",
 	}
 
-	for serverURI, rewrittenURI := range tests {
+	for serverURI, expectedClientURI := range tests {
+		parsedServerURI, err := url.Parse(serverURI)
+		if err != nil {
+			t.Fatalf("got error %s when parsing server uri %s", err, serverURI)
+		}
+
+		// Convert serverURI test fixture to look like a system filePath
+		if parsedServerURI.Path != "" {
+			parsedServerURI.Path = filepath.FromSlash(parsedServerURI.Path)
+			serverURI = parsedServerURI.String()
+		}
+
 		actual := serverToClientURI(lsp.DocumentURI(serverURI), cacheDir)
-		if actual != lsp.DocumentURI(rewrittenURI) {
-			t.Errorf("for uri %s, expected %s, actual %s", serverURI, rewrittenURI, actual)
+		if actual != lsp.DocumentURI(expectedClientURI) {
+			t.Errorf("for uri %s, expected %s, actual %s", serverURI, expectedClientURI, actual)
 		}
 	}
 }
