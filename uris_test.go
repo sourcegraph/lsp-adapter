@@ -41,7 +41,7 @@ func TestProbablyFileURI(t *testing.T) {
 }
 
 func TestClientToServerURI(t *testing.T) {
-	cacheDir := path.Join("/", uuid.New().String()+"TestClientToServerURI")
+	cacheDir := path.Join("/", uuid.New().String(), "TestClientToServerURI")
 	projectFileLoc := "/a.py"
 	cacheFileLoc := path.Join(cacheDir, projectFileLoc)
 
@@ -73,7 +73,7 @@ func TestClientToServerURI(t *testing.T) {
 }
 
 func TestServerToClientURI(t *testing.T) {
-	cacheDir := path.Join("/", uuid.New().String()+"TestServerToClientURI")
+	cacheDir := path.Join("/", uuid.New().String(), "TestServerToClientURI")
 	projectFileLoc := "/a.py"
 	cacheFileLoc := path.Join(cacheDir, projectFileLoc)
 
