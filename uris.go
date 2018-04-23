@@ -86,17 +86,33 @@ func probablyFileURI(candidate *url.URL) bool {
 	return true
 }
 
-// copied from sourcegraph/go-langserver/util.go
 func pathHasPrefix(s, prefix string) bool {
+	return rawHasPrefix(s, prefix, "/")
+}
+
+func filepathHasPrefix(s, prefix string) bool {
+	return rawHasPrefix(s, prefix, string(os.PathSeparator))
+}
+
+// adapted from sourcegraph/go-langserver/util.go
+func rawHasPrefix(s, prefix, pathSep string) bool {
 	var prefixSlash string
-	if prefix != "" && !strings.HasSuffix(prefix, string(os.PathSeparator)) {
-		prefixSlash = prefix + string(os.PathSeparator)
+	if prefix != "" && !strings.HasSuffix(prefix, pathSep) {
+		prefixSlash = prefix + pathSep
 	}
 	return s == prefix || strings.HasPrefix(s, prefixSlash)
 }
 
-// copied from sourcegraph/go-langserver/util.go
 func pathTrimPrefix(s, prefix string) string {
+	return rawTrimPrefix(s, prefix, "/")
+}
+
+func filepathTrimPrefix(s, prefix string) string {
+	return rawTrimPrefix(s, prefix, string(os.PathSeparator))
+}
+
+// adapted from sourcegraph/go-langserver/util.go
+func rawTrimPrefix(s, prefix, pathSep string) string {
 	if s == prefix {
 		return ""
 	}
