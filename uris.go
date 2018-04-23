@@ -117,8 +117,8 @@ func rawTrimPrefix(s, prefix, pathSep string) string {
 	if s == prefix {
 		return ""
 	}
-	if !strings.HasSuffix(prefix, string(os.PathSeparator)) {
-		prefix += string(os.PathSeparator)
+	if !strings.HasSuffix(prefix, pathSep) {
+		prefix += pathSep
 	}
 	return strings.TrimPrefix(s, prefix)
 }
