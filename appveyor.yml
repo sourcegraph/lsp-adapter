@@ -11,5 +11,5 @@ install:
   - go env
   - go get -v golang.org/x/tools/cmd/goimports
 build_script:
-  - goimports -d *.go
+  - goimports -d .
   - go test -v ./...
