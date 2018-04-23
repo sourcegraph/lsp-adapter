@@ -3,12 +3,13 @@ package main
 import (
 	"encoding/json"
 	"net/url"
-	"path/filepath"
+	"path"
 	"reflect"
 	"sort"
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/sourcegraph/go-langserver/pkg/lsp"
 )
 
@@ -40,9 +41,9 @@ func TestProbablyFileURI(t *testing.T) {
 }
 
 func TestClientToServerURI(t *testing.T) {
-	cacheDir := "/tmp"
+	cacheDir := path.Join("/", uuid.New().String()+"TestClientToServerURI")
 	projectFileLoc := "/a.py"
-	cacheFileLoc := filepath.Join(cacheDir, projectFileLoc)
+	cacheFileLoc := path.Join(cacheDir, projectFileLoc)
 
 	tests := map[string]string{
 		"file://" + projectFileLoc: "file://" + cacheFileLoc,
@@ -52,8 +53,8 @@ func TestClientToServerURI(t *testing.T) {
 		"file://" + projectFileLoc + "#line=1,char=2": "file://" + cacheFileLoc + "#line=1,char=2",
 		projectFileLoc + "#line=1,char=2":             cacheFileLoc + "#line=1,char=2",
 
-		"file:///": "file://" + filepath.Join(cacheDir, "/"),
-		"/":        filepath.Join(cacheDir, "/"),
+		"file:///": "file://" + path.Join(cacheDir, "/"),
+		"/":        path.Join(cacheDir, "/"),
 
 		// don't rewrite uris with an explicit non-file scheme
 		"git:///sourcegraph.com/sourcegraph?SHA": "git:///sourcegraph.com/sourcegraph?SHA",
@@ -72,9 +73,9 @@ func TestClientToServerURI(t *testing.T) {
 }
 
 func TestServerToClientURI(t *testing.T) {
-	cacheDir := "/tmp"
+	cacheDir := path.Join("/", uuid.New().String()+"TestServerToClientURI")
 	projectFileLoc := "/a.py"
-	cacheFileLoc := filepath.Join(cacheDir, projectFileLoc)
+	cacheFileLoc := path.Join(cacheDir, projectFileLoc)
 
 	tests := map[string]string{
 		"file://" + cacheFileLoc: "file://" + projectFileLoc,
