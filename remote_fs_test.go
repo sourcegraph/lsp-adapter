@@ -37,7 +37,7 @@ func TestClone(t *testing.T) {
 		},
 	}
 
-	files := make(map[string]string)
+	files := make(map[lsp.DocumentURI]string)
 
 	for _, aFile := range fileList {
 		files[aFile.path] = aFile.content
@@ -113,7 +113,7 @@ func TestBatchOpen(t *testing.T) {
 		return fileList[i].path < fileList[j].path
 	})
 
-	files := make(map[string]string)
+	files := make(map[lsp.DocumentURI]string)
 
 	for _, aFile := range fileList {
 		files[aFile.path] = aFile.content
@@ -122,21 +122,21 @@ func TestBatchOpen(t *testing.T) {
 	// open single file
 	for _, aFile := range fileList {
 		runTest(t, files, func(ctx context.Context, fs *remoteFS) {
-			results, err := fs.BatchOpen(ctx, []string{aFile.path})
+			results, err := fs.BatchOpen(ctx, []lsp.DocumentURI{aFile.path})
 
 			if err != nil {
 				t.Error(errors.Wrapf(err, "when calling batchOpen on path: %s", aFile.path))
 			}
 
 			if !reflect.DeepEqual(results, []batchOpenResult{aFile}) {
-				t.Errorf("for batchOpen(paths=%v) expected %v, actual %v", []string{aFile.path}, []batchOpenResult{aFile}, results)
+				t.Errorf("for batchOpen(paths=%v) expected %v, actual %v", []lsp.DocumentURI{aFile.path}, []batchOpenResult{aFile}, results)
 			}
 		})
 	}
 
 	// open multiple files
 	runTest(t, files, func(ctx context.Context, fs *remoteFS) {
-		var allPaths []string
+		var allPaths []lsp.DocumentURI
 
 		for _, aFile := range fileList {
 			allPaths = append(allPaths, aFile.path)
@@ -159,7 +159,7 @@ func TestBatchOpen(t *testing.T) {
 
 	// open single invalid file
 	runTest(t, files, func(ctx context.Context, fs *remoteFS) {
-		_, err := fs.BatchOpen(ctx, []string{"/non/existent/file.py"})
+		_, err := fs.BatchOpen(ctx, []lsp.DocumentURI{"/non/existent/file.py"})
 
 		if err == nil {
 			t.Error("expected error when trying to batchOpen non-existent file '/non/existent/file.py'")
@@ -168,7 +168,7 @@ func TestBatchOpen(t *testing.T) {
 
 	// open multiple valid files and one invalid file
 	runTest(t, files, func(ctx context.Context, fs *remoteFS) {
-		allPaths := []string{"non/existent/file.py"}
+		allPaths := []lsp.DocumentURI{"non/existent/file.py"}
 
 		for _, aFile := range fileList {
 			allPaths = append(allPaths, aFile.path)
@@ -183,7 +183,7 @@ func TestBatchOpen(t *testing.T) {
 
 	// open zero files
 	runTest(t, files, func(ctx context.Context, fs *remoteFS) {
-		results, err := fs.BatchOpen(ctx, []string{})
+		results, err := fs.BatchOpen(ctx, []lsp.DocumentURI{})
 
 		if err != nil {
 			t.Error(errors.Wrapf(err, "when calling batchOpen on zero paths"))
@@ -211,7 +211,7 @@ func TestOpen(t *testing.T) {
 		},
 	}
 
-	files := make(map[string]string)
+	files := make(map[lsp.DocumentURI]string)
 
 	for _, aFile := range fileList {
 		files[aFile.path] = aFile.content
@@ -241,36 +241,36 @@ func TestOpen(t *testing.T) {
 
 func TestWalk(t *testing.T) {
 	type testCase struct {
-		fileNames         []string
+		fileNames         []lsp.DocumentURI
 		base              string
-		expectedFileNames []string
+		expectedFileNames []lsp.DocumentURI
 	}
 
 	tests := []testCase{
 		testCase{
-			fileNames:         []string{"/a.py", "/b.py", "/dir/c.py"},
+			fileNames:         []lsp.DocumentURI{"/a.py", "/b.py", "/dir/c.py"},
 			base:              "/",
-			expectedFileNames: []string{"/a.py", "/b.py", "/dir/c.py"},
+			expectedFileNames: []lsp.DocumentURI{"/a.py", "/b.py", "/dir/c.py"},
 		},
 		testCase{
-			fileNames:         []string{"/a.py", "/b.py", "/dir/c.py"},
+			fileNames:         []lsp.DocumentURI{"/a.py", "/b.py", "/dir/c.py"},
 			base:              "/dir",
-			expectedFileNames: []string{"/dir/c.py"},
+			expectedFileNames: []lsp.DocumentURI{"/dir/c.py"},
 		},
 		testCase{
-			fileNames:         []string{"/a.py", "/b.py", "/dir/c.py"},
+			fileNames:         []lsp.DocumentURI{"/a.py", "/b.py", "/dir/c.py"},
 			base:              "/di",
-			expectedFileNames: []string{},
+			expectedFileNames: []lsp.DocumentURI{},
 		},
 		testCase{
-			fileNames:         []string{"/a.py", "/b.py", "/dir/c.py"},
+			fileNames:         []lsp.DocumentURI{"/a.py", "/b.py", "/dir/c.py"},
 			base:              "/notadir",
-			expectedFileNames: []string{},
+			expectedFileNames: []lsp.DocumentURI{},
 		},
 	}
 
 	for _, test := range tests {
-		files := make(map[string]string)
+		files := make(map[lsp.DocumentURI]string)
 
 		for _, fileName := range test.fileNames {
 			files[fileName] = ""
@@ -297,7 +297,7 @@ func TestWalk(t *testing.T) {
 	}
 }
 
-func runTest(t *testing.T, files map[string]string, checkFunc func(ctx context.Context, fs *remoteFS)) {
+func runTest(t *testing.T, files map[lsp.DocumentURI]string, checkFunc func(ctx context.Context, fs *remoteFS)) {
 	ctx := context.Background()
 
 	a, b := net.Pipe()
@@ -322,7 +322,7 @@ func runTest(t *testing.T, files map[string]string, checkFunc func(ctx context.C
 
 type testFS struct {
 	t     *testing.T
-	files map[string]string // map of file names to content
+	files map[lsp.DocumentURI]string // map of file names to content
 }
 
 func (client *testFS) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {

@@ -2,14 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"path/filepath"
 	"sync"
 
-	multierror "github.com/hashicorp/go-multierror"
 	"github.com/neelance/parallel"
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/go-langserver/pkg/lsp"
@@ -22,19 +19,19 @@ type remoteFS struct {
 }
 
 // BatchOpen opens all of the content for the specified paths.
-func (fs *remoteFS) BatchOpen(ctx context.Context, paths []string) ([]batchOpenResult, error) {
+func (fs *remoteFS) BatchOpen(ctx context.Context, fileURIs []lsp.DocumentURI) ([]batchFile, error) {
 	par := parallel.NewRun(8)
 
 	var mut sync.Mutex
-	var results []batchOpenResult
+	var batchFiles []batchFile
 
-	for _, path := range paths {
+	for _, fileURI := range fileURIs {
 		par.Acquire()
 
-		go func(path string) {
+		go func(uri lsp.DocumentURI) {
 			defer par.Release()
 
-			text, err := fs.Open(ctx, path)
+			text, err := fs.Open(ctx, uri)
 			if err != nil {
 				par.Error(err)
 				return
@@ -43,30 +40,26 @@ func (fs *remoteFS) BatchOpen(ctx context.Context, paths []string) ([]batchOpenR
 			mut.Lock()
 			defer mut.Unlock()
 
-			results = append(results, batchOpenResult{path: path, content: text})
+			batchFiles = append(batchFiles, batchFile{uri: uri, content: text})
 
-		}(path)
+		}(fileURI)
 	}
 
 	if err := par.Wait(); err != nil {
 		return nil, err
 	}
 
-	return results, nil
+	return batchFiles, nil
 }
 
-type batchOpenResult struct {
-	path    string
+type batchFile struct {
+	uri     lsp.DocumentURI
 	content string
 }
 
-// Open returns the content of the text file for the given path.
-func (fs *remoteFS) Open(ctx context.Context, path string) (string, error) {
-	u := &url.URL{
-		Scheme: "file",
-		Path:   path,
-	}
-	params := lspext.ContentParams{TextDocument: lsp.TextDocumentIdentifier{URI: lsp.DocumentURI(u.String())}}
+// Open returns the content of the text file for the given file uri path.
+func (fs *remoteFS) Open(ctx context.Context, fileURI lsp.DocumentURI) (string, error) {
+	params := lspext.ContentParams{TextDocument: lsp.TextDocumentIdentifier{URI: fileURI}}
 	var res lsp.TextDocumentItem
 
 	if err := fs.conn.Call(ctx, "textDocument/xcontent", params, &res); err != nil {
@@ -76,8 +69,8 @@ func (fs *remoteFS) Open(ctx context.Context, path string) (string, error) {
 	return res.Text, nil
 }
 
-// Walk returns a list of all file paths that are children of "base".
-func (fs *remoteFS) Walk(ctx context.Context, base string) ([]string, error) {
+// Walk returns a list of all file uris that are children of "base".
+func (fs *remoteFS) Walk(ctx context.Context, base string) ([]lsp.DocumentURI, error) {
 	params := lspext.FilesParams{Base: base}
 	var res []lsp.TextDocumentIdentifier
 
@@ -85,19 +78,12 @@ func (fs *remoteFS) Walk(ctx context.Context, base string) ([]string, error) {
 		return nil, errors.Wrap(err, "calling workspace/xfiles failed")
 	}
 
-	var paths []string
-	var parseErrors *multierror.Error
+	var fileURIs []lsp.DocumentURI
 	for _, ident := range res {
-		parsedURI, err := url.Parse(string(ident.URI))
-		if err != nil {
-			err = errors.Wrap(err, fmt.Sprintf("when parsing rawURI %s for walk", ident.URI))
-			parseErrors = multierror.Append(parseErrors, err)
-		} else {
-			paths = append(paths, parsedURI.Path)
-		}
+		fileURIs = append(fileURIs, ident.URI)
 	}
 
-	return paths, parseErrors.ErrorOrNil()
+	return fileURIs, nil
 }
 
 func (fs *remoteFS) Clone(ctx context.Context, baseDir string) error {
@@ -112,7 +98,10 @@ func (fs *remoteFS) Clone(ctx context.Context, baseDir string) error {
 	}
 
 	for _, file := range files {
-		newFilePath := filepath.Join(baseDir, file.path)
+
+		
+
+		newFilePath := filepath.Join(baseDir, filepath.ToSlash(string(file.uri)))
 
 		// There is an assumption here that all paths returned from Walk()
 		// point to files, not directories
