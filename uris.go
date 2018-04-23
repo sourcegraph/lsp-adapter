@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -48,7 +49,7 @@ func clientToServerURI(uri lsp.DocumentURI, cacheDir string) lsp.DocumentURI {
 
 	// We assume that any path provided by the client to the server
 	// is a project path that is relative to '/'
-	parsedURI.Path = filepath.Join(cacheDir, parsedURI.Path)
+	parsedURI.Path = path.Join(cacheDir, parsedURI.Path)
 	return lsp.DocumentURI(parsedURI.String())
 }
 
