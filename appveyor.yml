@@ -1,0 +1,13 @@
+version: "{build}"
+shallow_clone: true
+clone_folder: c:\gopath\src\github.com\sourcegraph\cloneproxy
+  GOPATH: c:\gopath
+install:
+  - echo %PATH%
+  - echo %GOPATH%
+  - go version
+  - go env
+  - go get -v golang.org/x/tools/cmd/goimports
+build_script:
+  - goimports -d $(find . -type f -name '*.go' -not -path "./vendor/*")
+  - go test -v ./...
