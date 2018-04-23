@@ -99,8 +99,6 @@ func (fs *remoteFS) Clone(ctx context.Context, baseDir string) error {
 
 	for _, file := range files {
 
-		
-
 		newFilePath := filepath.Join(baseDir, filepath.ToSlash(string(file.uri)))
 
 		// There is an assumption here that all paths returned from Walk()
