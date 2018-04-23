@@ -9,7 +9,5 @@ install:
   - echo %GOPATH%
   - go version
   - go env
-  - go get -v golang.org/x/tools/cmd/goimports
 build_script:
-  - goimports -d .
   - go test -v ./...
