@@ -35,7 +35,10 @@ func (p *cloneProxy) workspaceCacheDir() string {
 	return filepath.Join(*cacheDir, p.sessionID.String())
 }
 
-func clientToServerURI(uri lsp.DocumentURI, cacheDir string) lsp.DocumentURI {
+func clientToServerURI(uri lsp.DocumentURI, sysCacheDir string) lsp.DocumentURI {
+	// sysCacheDir needs to be converted from a local path to a URI path
+	cacheDir := filepath.ToSlash(sysCacheDir)
+
 	parsedURI, err := url.Parse(string(uri))
 
 	if err != nil {
@@ -53,7 +56,10 @@ func clientToServerURI(uri lsp.DocumentURI, cacheDir string) lsp.DocumentURI {
 	return lsp.DocumentURI(parsedURI.String())
 }
 
-func serverToClientURI(uri lsp.DocumentURI, cacheDir string) lsp.DocumentURI {
+func serverToClientURI(uri lsp.DocumentURI, sysCacheDir string) lsp.DocumentURI {
+	// sysCacheDir needs to be converted from a local path to a URI path
+	cacheDir := filepath.ToSlash(sysCacheDir)
+
 	parsedURI, err := url.Parse(string(uri))
 
 	if err != nil {
