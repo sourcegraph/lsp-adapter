@@ -69,7 +69,7 @@ func serverToClientURI(uri lsp.DocumentURI, cacheDir string) lsp.DocumentURI {
 	// point to a cache location, then we assume that the path points to a location in the
 	// project.
 	if pathHasPrefix(parsedURI.Path, cacheDir) {
-		parsedURI.Path = filepath.Join("/", pathTrimPrefix(parsedURI.Path, cacheDir))
+		parsedURI.Path = path.Join("/", pathTrimPrefix(parsedURI.Path, cacheDir))
 	}
 
 	return lsp.DocumentURI(parsedURI.String())
