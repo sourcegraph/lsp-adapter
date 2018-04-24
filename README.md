@@ -63,7 +63,7 @@ Any stderr output from the binary will also appear in `lsp-adapter`'s logs.
 
 1. Use the `-proxyAddress` flag to tell `lsp-adapter` what address to listen for connections from Sourcegraph on. For example, I can tell `lsp-adapter` to listen on my local `8080` port with `-proxyAddress=127.0.0.1:8080`.
 
-2. We then need to add a new entry to the `"langservers"` field in the site configuration in order to point Sourcegraph at `lsp-adapter` (similar to the steps in this document). For example, if `lsp-adapter` is connected to the Rust language server, and the `lsp-adapter` itself is listening on `127.0.0.1:8080`:
+2. We then need to add a new entry to the `"langservers"` field in the site configuration in order to point Sourcegraph at `lsp-adapter` (similar to the steps in [this document](https://about.sourcegraph.com/docs/code-intelligence/install-manual)). For example, if `lsp-adapter` is connected to the Rust language server, and the `lsp-adapter` itself is listening on `127.0.0.1:8080`:
 
 ```json
 {
