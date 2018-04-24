@@ -15,8 +15,6 @@ script:
   - test -z $(goimports -d $GO_FILES) # this test asserts import ordering
   - test -z $(gofmt -s -d $GO_FILES)
   - go test -v ./...
-
-before_deploy:
   - mkdir release
   - cd release && gox -arch 'amd64' -os 'linux windows darwin' github.com/sourcegraph/lsp-adapter
 
