@@ -101,7 +101,7 @@ func (fs *remoteFS) Clone(ctx context.Context, baseDir string) error {
 	for _, file := range files {
 		parsedFileURI, err := url.Parse(string(file.uri))
 		if err != nil {
-			errors.Wrapf(err, "failed to parse raw file uri %s for Clone", file.uri)
+			return errors.Wrapf(err, "failed to parse raw file uri %s for Clone", file.uri)
 		}
 
 		newFilePath := filepath.Join(baseDir, filepath.FromSlash(parsedFileURI.Path))
