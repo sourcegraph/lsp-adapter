@@ -112,13 +112,13 @@ func TestServerToClientURI(t *testing.T) {
 
 func TestWalkURIFields(t *testing.T) {
 	tests := map[string][]lsp.DocumentURI{
-		`{"textDocument":{"uri":"u1"}}`: []lsp.DocumentURI{"u1"},
-		`{"uri":"u1"}`:                  []lsp.DocumentURI{"u1"},
+		`{"textDocument":{"uri":"u1"}}`: {"u1"},
+		`{"uri":"u1"}`:                  {"u1"},
 
 		// `initialize` specific fields
-		`{"method":"initialize","rootPath":"u1"}`:                []lsp.DocumentURI{"u1"},
-		`{"method":"initialize","rootUri":"u1"}`:                 []lsp.DocumentURI{"u1"},
-		`{"method":"initialize","rootPath":"u1","rootUri":"u2"}`: []lsp.DocumentURI{"u1", "u2"},
+		`{"method":"initialize","rootPath":"u1"}`:                {"u1"},
+		`{"method":"initialize","rootUri":"u1"}`:                 {"u1"},
+		`{"method":"initialize","rootPath":"u1","rootUri":"u2"}`: {"u1", "u2"},
 	}
 
 	for objStr, wantURIs := range tests {

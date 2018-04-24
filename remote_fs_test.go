@@ -24,15 +24,15 @@ import (
 
 func TestClone(t *testing.T) {
 	fileList := []batchFile{
-		batchFile{
+		{
 			uri:     "file:///a.py",
 			content: "This is file A.",
 		},
-		batchFile{
+		{
 			uri:     "/b.py",
 			content: "This is file B.",
 		},
-		batchFile{
+		{
 			uri:     "file:///dir/c.py",
 			content: "This is file C.",
 		},
@@ -100,15 +100,15 @@ func TestClone(t *testing.T) {
 
 func TestBatchOpen(t *testing.T) {
 	fileList := []batchFile{
-		batchFile{
+		{
 			uri:     "file:///a.py",
 			content: "This is file A.",
 		},
-		batchFile{
+		{
 			uri:     "/b.py",
 			content: "This is file B.",
 		},
-		batchFile{
+		{
 			uri:     "file:///dir/c.py",
 			content: "This is file C.",
 		},
@@ -206,15 +206,15 @@ func TestBatchOpen(t *testing.T) {
 
 func TestOpen(t *testing.T) {
 	fileList := []batchFile{
-		batchFile{
+		{
 			uri:     "/a.py",
 			content: "This is file A.",
 		},
-		batchFile{
+		{
 			uri:     "/b.py",
 			content: "This is file B.",
 		},
-		batchFile{
+		{
 			uri:     "/dir/c.py",
 			content: "This is file C.",
 		},
@@ -256,22 +256,22 @@ func TestWalk(t *testing.T) {
 	}
 
 	tests := []testCase{
-		testCase{
+		{
 			fileNames:        []string{"/a.py", "/b.py", "/dir/c.py"},
 			base:             "/",
 			expectedFileURIs: []string{"file:///a.py", "file:///b.py", "file:///dir/c.py"},
 		},
-		testCase{
+		{
 			fileNames:        []string{"/a.py", "/b.py", "/dir/c.py"},
 			base:             "/dir",
 			expectedFileURIs: []string{"file:///dir/c.py"},
 		},
-		testCase{
+		{
 			fileNames:        []string{"/a.py", "/b.py", "/dir/c.py"},
 			base:             "/di",
 			expectedFileURIs: []string{},
 		},
-		testCase{
+		{
 			fileNames:        []string{"/a.py", "/b.py", "/dir/c.py"},
 			base:             "/notadir",
 			expectedFileURIs: []string{},
