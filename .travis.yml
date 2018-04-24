@@ -10,10 +10,10 @@ install:
   - cd release && gox -arch 'amd64' -os 'linux windows darwin' ../cmd/...
 
 before_script:
+  - cd $TRAVIS_BUILD_DIR
   - GO_FILES=$(find . -type f -name '*.go' -not -path "./vendor/*")
 
 script:
-  - cd $TRAVIS_BUILD_DIR
   - test -z $(goimports -d $GO_FILES) # this test asserts import ordering
   - test -z $(gofmt -s -d $GO_FILES)
   - go test -v ./...
