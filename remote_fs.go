@@ -70,7 +70,7 @@ func (fs *remoteFS) Open(ctx context.Context, fileURI lsp.DocumentURI) (string, 
 	return res.Text, nil
 }
 
-// Walk returns a list of all file uris that are children of "base".
+// Walk returns a list of all file uris.
 func (fs *remoteFS) Walk(ctx context.Context) ([]lsp.DocumentURI, error) {
 	params := lspext.FilesParams{}
 	var res []lsp.TextDocumentIdentifier
