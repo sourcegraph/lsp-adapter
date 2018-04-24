@@ -6,6 +6,10 @@ go:
 install:
   - go get -v golang.org/x/tools/cmd/goimports
 
+before_script:
+  - GO_FILES = $(find . -type f -name '*.go' -not -path "./vendor/*")
+
 script:
-  - goimports -d $(find . -type f -name '*.go' -not -path "./vendor/*")
+  - test -z $(goimports -d $GO_FILES)
+  - test -z $(gofmt -s -d $GO_FILES)
   - go test -v ./...
