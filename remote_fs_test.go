@@ -25,7 +25,7 @@ import (
 func TestClone(t *testing.T) {
 	fileList := []batchFile{
 		batchFile{
-			uri:     "/a.py",
+			uri:     "file:///a.py",
 			content: "This is file A.",
 		},
 		batchFile{
@@ -33,7 +33,7 @@ func TestClone(t *testing.T) {
 			content: "This is file B.",
 		},
 		batchFile{
-			uri:     "/dir/c.py",
+			uri:     "file:///dir/c.py",
 			content: "This is file C.",
 		},
 	}
@@ -41,7 +41,11 @@ func TestClone(t *testing.T) {
 	files := make(map[string]string)
 
 	for _, aFile := range fileList {
-		files[string(aFile.uri)] = aFile.content
+		parsedFileURI, err := url.Parse(string(aFile.uri))
+		if err != nil {
+			t.Fatal(errors.Wrapf(err, "unable to parse uri for batchFile %v", aFile))
+		}
+		files[parsedFileURI.Path] = aFile.content
 	}
 
 	baseDir, err := ioutil.TempDir("", uuid.New().String()+"testClone")
@@ -97,7 +101,7 @@ func TestClone(t *testing.T) {
 func TestBatchOpen(t *testing.T) {
 	fileList := []batchFile{
 		batchFile{
-			uri:     "/a.py",
+			uri:     "file:///a.py",
 			content: "This is file A.",
 		},
 		batchFile{
@@ -105,7 +109,7 @@ func TestBatchOpen(t *testing.T) {
 			content: "This is file B.",
 		},
 		batchFile{
-			uri:     "/dir/c.py",
+			uri:     "file:///dir/c.py",
 			content: "This is file C.",
 		},
 	}
@@ -117,7 +121,11 @@ func TestBatchOpen(t *testing.T) {
 	files := make(map[string]string)
 
 	for _, aFile := range fileList {
-		files[string(aFile.uri)] = aFile.content
+		parsedFileURI, err := url.Parse(string(aFile.uri))
+		if err != nil {
+			t.Fatal(errors.Wrapf(err, "unable to parse uri for batchFile %v", aFile))
+		}
+		files[parsedFileURI.Path] = aFile.content
 	}
 
 	// open single file
@@ -242,31 +250,31 @@ func TestOpen(t *testing.T) {
 
 func TestWalk(t *testing.T) {
 	type testCase struct {
-		fileNames         []string
-		base              string
-		expectedFileNames []string
+		fileNames        []string
+		base             string
+		expectedFileURIs []string
 	}
 
 	tests := []testCase{
 		testCase{
-			fileNames:         []string{"/a.py", "/b.py", "/dir/c.py"},
-			base:              "/",
-			expectedFileNames: []string{"/a.py", "/b.py", "/dir/c.py"},
+			fileNames:        []string{"/a.py", "/b.py", "/dir/c.py"},
+			base:             "/",
+			expectedFileURIs: []string{"file:///a.py", "file:///b.py", "file:///dir/c.py"},
 		},
 		testCase{
-			fileNames:         []string{"/a.py", "/b.py", "/dir/c.py"},
-			base:              "/dir",
-			expectedFileNames: []string{"/dir/c.py"},
+			fileNames:        []string{"/a.py", "/b.py", "/dir/c.py"},
+			base:             "/dir",
+			expectedFileURIs: []string{"file:///dir/c.py"},
 		},
 		testCase{
-			fileNames:         []string{"/a.py", "/b.py", "/dir/c.py"},
-			base:              "/di",
-			expectedFileNames: []string{},
+			fileNames:        []string{"/a.py", "/b.py", "/dir/c.py"},
+			base:             "/di",
+			expectedFileURIs: []string{},
 		},
 		testCase{
-			fileNames:         []string{"/a.py", "/b.py", "/dir/c.py"},
-			base:              "/notadir",
-			expectedFileNames: []string{},
+			fileNames:        []string{"/a.py", "/b.py", "/dir/c.py"},
+			base:             "/notadir",
+			expectedFileURIs: []string{},
 		},
 	}
 
@@ -290,15 +298,15 @@ func TestWalk(t *testing.T) {
 			}
 
 			sort.Strings(actualFileNames)
-			sort.Strings(test.expectedFileNames)
+			sort.Strings(test.expectedFileURIs)
 
-			if len(actualFileNames) == 0 && len(test.expectedFileNames) == 0 {
+			if len(actualFileNames) == 0 && len(test.expectedFileURIs) == 0 {
 				// special case empty slice versus nil comparsion below?
 				return
 			}
 
-			if !reflect.DeepEqual(actualFileNames, test.expectedFileNames) {
-				t.Errorf("for walk(base=%s) expected %v, actual %v", test.base, test.expectedFileNames, actualFileNames)
+			if !reflect.DeepEqual(actualFileNames, test.expectedFileURIs) {
+				t.Errorf("for walk(base=%s) expected %v, actual %v", test.base, test.expectedFileURIs, actualFileNames)
 			}
 		})
 	}
@@ -382,8 +390,14 @@ func (client *testFS) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *json
 		var results []lsp.TextDocumentIdentifier
 		for filePath := range client.files {
 			if pathHasPrefix(filePath, filesParams.Base) {
+				fileURI, err := url.Parse(filePath)
+				if err != nil {
+					client.t.Fatalf(errors.Wrapf(err, "unable to parse filePath %s as URI for workspace/xfiles", filePath).Error())
+				}
+				fileURI.Scheme = "file"
+
 				results = append(results, lsp.TextDocumentIdentifier{
-					URI: lsp.DocumentURI(filePath),
+					URI: lsp.DocumentURI(fileURI.String()),
 				})
 			}
 		}

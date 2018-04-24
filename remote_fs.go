@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sync"
@@ -98,7 +99,12 @@ func (fs *remoteFS) Clone(ctx context.Context, baseDir string) error {
 	}
 
 	for _, file := range files {
-		newFilePath := filepath.Join(baseDir, filepath.FromSlash(string(file.uri)))
+		parsedFileURI, err := url.Parse(string(file.uri))
+		if err != nil {
+			errors.Wrapf(err, "failed to parse raw file uri %s for Clone", file.uri)
+		}
+
+		newFilePath := filepath.Join(baseDir, filepath.FromSlash(parsedFileURI.Path))
 
 		// There is an assumption here that all paths returned from Walk()
 		// point to files, not directories
