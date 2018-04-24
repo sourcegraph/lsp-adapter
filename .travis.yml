@@ -6,8 +6,6 @@ go:
 install:
   - go get -v golang.org/x/tools/cmd/goimports
   - go get -v github.com/mitchellh/gox
-  - mkdir release
-  - cd release && gox -arch 'amd64' -os 'linux windows darwin' github.com/sourcegraph/lsp-adapter
 
 before_script:
   - cd $TRAVIS_BUILD_DIR
@@ -19,7 +17,8 @@ script:
   - go test -v ./...
 
 before_deploy:
-  - git tag "$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)"
+  - mkdir release
+  - cd release && gox -arch 'amd64' -os 'linux windows darwin' github.com/sourcegraph/lsp-adapter
 
 deploy:
   provider: releases
@@ -29,4 +28,8 @@ deploy:
   file: release/*
   skip_cleanup: true
   on:
-    branch: master
+    tags: true
+
+branches:
+  only:
+    - master
