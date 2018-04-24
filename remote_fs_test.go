@@ -301,7 +301,7 @@ func TestWalk(t *testing.T) {
 			sort.Strings(test.expectedFileURIs)
 
 			if len(actualFileNames) == 0 && len(test.expectedFileURIs) == 0 {
-				// special case empty slice versus nil comparsion below?
+				// special case empty slice versus nil comparison below?
 				return
 			}
 

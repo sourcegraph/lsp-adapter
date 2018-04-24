@@ -36,7 +36,7 @@ type cloneProxy struct {
 	sessionID     uuid.UUID      // unique ID for this session
 	lastRequestID *atomicCounter // counter that is incremented for each new request that is sent across the wire for this session
 
-	ready chan struct{} // barrier to block handling requests until the proxy is fully initalized
+	ready chan struct{} // barrier to block handling requests until the proxy is fully initialized
 	ctx   context.Context
 
 	// HACK
@@ -195,7 +195,7 @@ func (p *cloneProxy) handleClientRequest(ctx context.Context, conn *jsonrpc2.Con
 			// request for yet.
 			//
 			// See this issue for more context: https://github.com/Microsoft/language-server-protocol/issues/177
-			// There is also a corresponding PR to officialy put this clarification in the text:
+			// There is also a corresponding PR to officially put this clarification in the text:
 			// https://github.com/Microsoft/language-server-protocol/pull/431
 			//
 			// This hack is necessary to get those offending language servers to work at all.

@@ -144,7 +144,7 @@ func WalkURIFields(o interface{}, update func(lsp.DocumentURI) lsp.DocumentURI) 
 		switch o := o.(type) {
 		case map[string]interface{}:
 			for k, v := range o { // Location, TextDocumentIdentifier, TextDocumentItem, etc.
-				// Handling "rootPath" and "rootUri" special cases the initalize method.
+				// Handling "rootPath" and "rootUri" special cases the initialize method.
 				if k == "uri" || k == "rootPath" || k == "rootUri" {
 					s, ok := v.(string)
 					if !ok {
