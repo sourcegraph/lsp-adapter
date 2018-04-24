@@ -14,7 +14,9 @@ custom LSP [files extensions](https://github.com/sourcegraph/language-server-pro
 
 ## How to Install 
 
-To build and install `lsp-adapter`, run:
+You can download the latest binary on the [releases page](https://github.com/sourcegraph/lsp-adapter/releases).
+
+Alternatively, install it with `go get`:
 
 ```shell
 go get -u -v github.com/sourcegraph/lsp-adapter
