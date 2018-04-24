@@ -79,9 +79,7 @@ func TestClone(t *testing.T) {
 				return errors.Wrapf(err, "when calling readFile for path %s", currPath)
 			}
 
-			if filepathHasPrefix(currPath, baseDir) {
-				currPath = path.Join("/", filepath.ToSlash(filepathTrimPrefix(currPath, baseDir)))
-			}
+			currPath = path.Join("/", filepath.ToSlash(filepathTrimPrefix(currPath, baseDir)))
 
 			discoveredFiles[currPath] = string(content)
 
