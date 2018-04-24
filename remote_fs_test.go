@@ -43,14 +43,14 @@ func TestClone(t *testing.T) {
 	for _, aFile := range fileList {
 		parsedFileURI, err := url.Parse(string(aFile.uri))
 		if err != nil {
-			t.Fatal(errors.Wrapf(err, "unable to parse uri for batchFile %v", aFile))
+			t.Fatalf("unable to parse uri for batchFile %v: %v", aFile, err)
 		}
 		files[parsedFileURI.Path] = aFile.content
 	}
 
 	baseDir, err := ioutil.TempDir("", uuid.New().String()+"testClone")
 	if err != nil {
-		t.Fatalf(errors.Wrap(err, "when creating temp directory for clone test").Error())
+		t.Fatalf("when creating temp directory for clone test, err: %v", err)
 	}
 
 	defer os.Remove(baseDir)
@@ -59,7 +59,7 @@ func TestClone(t *testing.T) {
 		err := fs.Clone(ctx, baseDir)
 
 		if err != nil {
-			t.Error(errors.Wrapf(err, "when calling clone(baseDir=%s)", baseDir))
+			t.Errorf("when calling clone(baseDir=%s): %v", baseDir, err)
 		}
 
 		discoveredFiles := make(map[string]string)
@@ -89,7 +89,7 @@ func TestClone(t *testing.T) {
 		})
 
 		if err != nil {
-			t.Error(errors.Wrapf(err, "when calling Walk for baseDir %s", baseDir))
+			t.Errorf("when calling Walk for baseDir %s: %v", baseDir, err)
 		}
 
 		if !reflect.DeepEqual(files, discoveredFiles) {
@@ -123,7 +123,7 @@ func TestBatchOpen(t *testing.T) {
 	for _, aFile := range fileList {
 		parsedFileURI, err := url.Parse(string(aFile.uri))
 		if err != nil {
-			t.Fatal(errors.Wrapf(err, "unable to parse uri for batchFile %v", aFile))
+			t.Fatalf("unable to parse uri for batchFile %v: %v", aFile, err)
 		}
 		files[parsedFileURI.Path] = aFile.content
 	}
@@ -134,7 +134,7 @@ func TestBatchOpen(t *testing.T) {
 			results, err := fs.BatchOpen(ctx, []lsp.DocumentURI{aFile.uri})
 
 			if err != nil {
-				t.Error(errors.Wrapf(err, "when calling batchOpen on uri: %s", aFile.uri))
+				t.Errorf("when calling batchOpen on uri %s: %v", aFile.uri, err)
 			}
 
 			if !reflect.DeepEqual(results, []batchFile{aFile}) {
@@ -154,7 +154,7 @@ func TestBatchOpen(t *testing.T) {
 		results, err := fs.BatchOpen(ctx, allURIs)
 
 		if err != nil {
-			t.Error(errors.Wrapf(err, "when calling batchOpen on paths: %v", allURIs))
+			t.Errorf("when calling batchOpen on paths: %v, err: %v", allURIs, err)
 		}
 
 		sort.Slice(results, func(i, j int) bool {
@@ -195,7 +195,7 @@ func TestBatchOpen(t *testing.T) {
 		results, err := fs.BatchOpen(ctx, []lsp.DocumentURI{})
 
 		if err != nil {
-			t.Error(errors.Wrapf(err, "when calling batchOpen on zero paths"))
+			t.Errorf("when calling batchOpen on zero paths: %v", err)
 		}
 
 		if len(results) > 0 {
@@ -231,7 +231,7 @@ func TestOpen(t *testing.T) {
 			actualFileContent, err := fs.Open(ctx, aFile.uri)
 
 			if err != nil {
-				t.Error(errors.Wrapf(err, "when calling open on uri: %s", aFile.uri))
+				t.Errorf("when calling open on uri: %s, err: %v", aFile.uri, err)
 			}
 
 			if actualFileContent != aFile.content {
@@ -288,7 +288,7 @@ func TestWalk(t *testing.T) {
 		runTest(t, files, func(ctx context.Context, fs *remoteFS) {
 			actualFileURIs, err := fs.Walk(ctx, test.base)
 			if err != nil {
-				t.Error(errors.Wrapf(err, "when calling walk on base: %s", test.base))
+				t.Errorf("when calling walk on base: %s, %v", test.base, err)
 			}
 
 			var actualFileNames []string
@@ -349,13 +349,13 @@ func (client *testFS) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *json
 	case "textDocument/xcontent":
 		var contentParams lspext.ContentParams
 		if err := json.Unmarshal(*req.Params, &contentParams); err != nil {
-			client.t.Fatalf(errors.Wrapf(err, "unable to unmarshal params %v for textdocument/xcontent", req.Params).Error())
+			client.t.Fatalf("unable to unmarshal params %v for textdocument/xcontent, err: %v", req.Params, err)
 		}
 
 		filePathRawURI := string(contentParams.TextDocument.URI)
 		filePathURI, err := url.Parse(filePathRawURI)
 		if err != nil {
-			client.t.Fatalf(errors.Wrapf(err, "unable to parse URI %vfor textdocument/xcontent", filePathRawURI).Error())
+			client.t.Fatalf("unable to parse URI %vfor textdocument/xcontent, err: %v", filePathRawURI, err)
 		}
 
 		content, present := client.files[filePathURI.Path]
@@ -367,7 +367,7 @@ func (client *testFS) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *json
 				Data:    nil,
 			}
 			if replyErr := conn.ReplyWithError(ctx, req.ID, err); replyErr != nil {
-				client.t.Fatalf(errors.Wrapf(replyErr, "error when sending back error reply for document %s", filePathURI).Error())
+				client.t.Fatalf("error when sending back error reply for document %s, err: %v", filePathURI, replyErr)
 			}
 			return
 		}
@@ -378,13 +378,13 @@ func (client *testFS) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *json
 		}
 
 		if replyErr := conn.Reply(ctx, req.ID, document); replyErr != nil {
-			client.t.Fatalf(errors.Wrapf(replyErr, "error when sending back content reply for document %v", document).Error())
+			client.t.Fatalf("error when sending back content reply for document %v, err:%v", document, replyErr)
 		}
 
 	case "workspace/xfiles":
 		var filesParams lspext.FilesParams
 		if err := json.Unmarshal(*req.Params, &filesParams); err != nil {
-			client.t.Fatalf(errors.Wrapf(err, "unable to unmarshal params %v for workspace/xfiles", req.Params).Error())
+			client.t.Fatalf("unable to unmarshal params %v for workspace/xfiles, err: %v", req.Params, err)
 		}
 
 		var results []lsp.TextDocumentIdentifier
@@ -392,7 +392,7 @@ func (client *testFS) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *json
 			if pathHasPrefix(filePath, filesParams.Base) {
 				fileURI, err := url.Parse(filePath)
 				if err != nil {
-					client.t.Fatalf(errors.Wrapf(err, "unable to parse filePath %s as URI for workspace/xfiles", filePath).Error())
+					client.t.Fatalf("unable to parse filePath %s as URI for workspace/xfiles, err: %v", filePath, err)
 				}
 				fileURI.Scheme = "file"
 
@@ -403,7 +403,7 @@ func (client *testFS) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *json
 		}
 
 		if replyErr := conn.Reply(ctx, req.ID, results); replyErr != nil {
-			client.t.Fatalf(errors.Wrapf(replyErr, "error when sending back files reply for base %s", filesParams.Base).Error())
+			client.t.Fatalf("error when sending back files reply for base %s, err: %v", filesParams.Base, replyErr)
 		}
 
 	default:
@@ -414,7 +414,7 @@ func (client *testFS) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *json
 		}
 
 		if replyErr := conn.ReplyWithError(ctx, req.ID, err); replyErr != nil {
-			client.t.Fatalf(errors.Wrapf(replyErr, "error when sending back error reply for invalid method %s", req.Method).Error())
+			client.t.Fatalf("error when sending back error reply for invalid method %s, err: %v", req.Method, replyErr)
 		}
 	}
 }
