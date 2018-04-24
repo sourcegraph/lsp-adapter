@@ -17,6 +17,7 @@ script:
   - go test -v ./...
   - mkdir release
   - cd release && gox -arch 'amd64' -os 'linux windows darwin' github.com/sourcegraph/lsp-adapter
+  - ls
 
 deploy:
   provider: releases
