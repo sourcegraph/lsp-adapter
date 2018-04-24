@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -34,7 +35,10 @@ func (p *cloneProxy) workspaceCacheDir() string {
 	return filepath.Join(*cacheDir, p.sessionID.String())
 }
 
-func clientToServerURI(uri lsp.DocumentURI, cacheDir string) lsp.DocumentURI {
+func clientToServerURI(uri lsp.DocumentURI, sysCacheDir string) lsp.DocumentURI {
+	// sysCacheDir needs to be converted from a local path to a URI path
+	cacheDir := filepath.ToSlash(sysCacheDir)
+
 	parsedURI, err := url.Parse(string(uri))
 
 	if err != nil {
@@ -48,11 +52,14 @@ func clientToServerURI(uri lsp.DocumentURI, cacheDir string) lsp.DocumentURI {
 
 	// We assume that any path provided by the client to the server
 	// is a project path that is relative to '/'
-	parsedURI.Path = filepath.Join(cacheDir, parsedURI.Path)
+	parsedURI.Path = path.Join(cacheDir, parsedURI.Path)
 	return lsp.DocumentURI(parsedURI.String())
 }
 
-func serverToClientURI(uri lsp.DocumentURI, cacheDir string) lsp.DocumentURI {
+func serverToClientURI(uri lsp.DocumentURI, sysCacheDir string) lsp.DocumentURI {
+	// sysCacheDir needs to be converted from a local path to a URI path
+	cacheDir := filepath.ToSlash(sysCacheDir)
+
 	parsedURI, err := url.Parse(string(uri))
 
 	if err != nil {
@@ -68,7 +75,7 @@ func serverToClientURI(uri lsp.DocumentURI, cacheDir string) lsp.DocumentURI {
 	// point to a cache location, then we assume that the path points to a location in the
 	// project.
 	if pathHasPrefix(parsedURI.Path, cacheDir) {
-		parsedURI.Path = filepath.Join("/", pathTrimPrefix(parsedURI.Path, cacheDir))
+		parsedURI.Path = path.Join("/", pathTrimPrefix(parsedURI.Path, cacheDir))
 	}
 
 	return lsp.DocumentURI(parsedURI.String())
@@ -86,22 +93,38 @@ func probablyFileURI(candidate *url.URL) bool {
 	return true
 }
 
-// copied from sourcegraph/go-langserver/util.go
 func pathHasPrefix(s, prefix string) bool {
+	return rawHasPrefix(s, prefix, "/")
+}
+
+func filepathHasPrefix(s, prefix string) bool {
+	return rawHasPrefix(s, prefix, string(os.PathSeparator))
+}
+
+// adapted from sourcegraph/go-langserver/util.go
+func rawHasPrefix(s, prefix, pathSep string) bool {
 	var prefixSlash string
-	if prefix != "" && !strings.HasSuffix(prefix, string(os.PathSeparator)) {
-		prefixSlash = prefix + string(os.PathSeparator)
+	if prefix != "" && !strings.HasSuffix(prefix, pathSep) {
+		prefixSlash = prefix + pathSep
 	}
 	return s == prefix || strings.HasPrefix(s, prefixSlash)
 }
 
-// copied from sourcegraph/go-langserver/util.go
 func pathTrimPrefix(s, prefix string) string {
+	return rawTrimPrefix(s, prefix, "/")
+}
+
+func filepathTrimPrefix(s, prefix string) string {
+	return rawTrimPrefix(s, prefix, string(os.PathSeparator))
+}
+
+// adapted from sourcegraph/go-langserver/util.go
+func rawTrimPrefix(s, prefix, pathSep string) string {
 	if s == prefix {
 		return ""
 	}
-	if !strings.HasSuffix(prefix, string(os.PathSeparator)) {
-		prefix += string(os.PathSeparator)
+	if !strings.HasSuffix(prefix, pathSep) {
+		prefix += pathSep
 	}
 	return strings.TrimPrefix(s, prefix)
 }
