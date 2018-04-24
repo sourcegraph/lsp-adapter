@@ -249,30 +249,13 @@ func TestOpen(t *testing.T) {
 func TestWalk(t *testing.T) {
 	type testCase struct {
 		fileNames        []string
-		base             string
 		expectedFileURIs []string
 	}
 
 	tests := []testCase{
 		{
 			fileNames:        []string{"/a.py", "/b.py", "/dir/c.py"},
-			base:             "/",
 			expectedFileURIs: []string{"file:///a.py", "file:///b.py", "file:///dir/c.py"},
-		},
-		{
-			fileNames:        []string{"/a.py", "/b.py", "/dir/c.py"},
-			base:             "/dir",
-			expectedFileURIs: []string{"file:///dir/c.py"},
-		},
-		{
-			fileNames:        []string{"/a.py", "/b.py", "/dir/c.py"},
-			base:             "/di",
-			expectedFileURIs: []string{},
-		},
-		{
-			fileNames:        []string{"/a.py", "/b.py", "/dir/c.py"},
-			base:             "/notadir",
-			expectedFileURIs: []string{},
 		},
 	}
 
@@ -284,9 +267,9 @@ func TestWalk(t *testing.T) {
 		}
 
 		runTest(t, files, func(ctx context.Context, fs *remoteFS) {
-			actualFileURIs, err := fs.Walk(ctx, test.base)
+			actualFileURIs, err := fs.Walk(ctx)
 			if err != nil {
-				t.Errorf("when calling walk on base: %s, %v", test.base, err)
+				t.Errorf("when calling walk: %v", err)
 			}
 
 			var actualFileNames []string
@@ -304,7 +287,7 @@ func TestWalk(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(actualFileNames, test.expectedFileURIs) {
-				t.Errorf("for walk(base=%s) expected %v, actual %v", test.base, test.expectedFileURIs, actualFileNames)
+				t.Errorf("for walk expected %v, actual %v", test.expectedFileURIs, actualFileNames)
 			}
 		})
 	}
@@ -380,28 +363,21 @@ func (client *testFS) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *json
 		}
 
 	case "workspace/xfiles":
-		var filesParams lspext.FilesParams
-		if err := json.Unmarshal(*req.Params, &filesParams); err != nil {
-			client.t.Fatalf("unable to unmarshal params %v for workspace/xfiles, err: %v", req.Params, err)
-		}
-
 		var results []lsp.TextDocumentIdentifier
 		for filePath := range client.files {
-			if pathHasPrefix(filePath, filesParams.Base) {
-				fileURI, err := url.Parse(filePath)
-				if err != nil {
-					client.t.Fatalf("unable to parse filePath %s as URI for workspace/xfiles, err: %v", filePath, err)
-				}
-				fileURI.Scheme = "file"
-
-				results = append(results, lsp.TextDocumentIdentifier{
-					URI: lsp.DocumentURI(fileURI.String()),
-				})
+			fileURI, err := url.Parse(filePath)
+			if err != nil {
+				client.t.Fatalf("unable to parse filePath %s as URI for workspace/xfiles, err: %v", filePath, err)
 			}
+			fileURI.Scheme = "file"
+
+			results = append(results, lsp.TextDocumentIdentifier{
+				URI: lsp.DocumentURI(fileURI.String()),
+			})
 		}
 
 		if replyErr := conn.Reply(ctx, req.ID, results); replyErr != nil {
-			client.t.Fatalf("error when sending back files reply for base %s, err: %v", filesParams.Base, replyErr)
+			client.t.Fatalf("error when sending back files reply, err: %v", replyErr)
 		}
 
 	default:
