@@ -70,9 +70,9 @@ func (fs *remoteFS) Open(ctx context.Context, fileURI lsp.DocumentURI) (string, 
 	return res.Text, nil
 }
 
-// Walk returns a list of all file uris that are children of "base".
-func (fs *remoteFS) Walk(ctx context.Context, base string) ([]lsp.DocumentURI, error) {
-	params := lspext.FilesParams{Base: base}
+// Walk returns a list of all file uris.
+func (fs *remoteFS) Walk(ctx context.Context) ([]lsp.DocumentURI, error) {
+	params := lspext.FilesParams{}
 	var res []lsp.TextDocumentIdentifier
 
 	if err := fs.conn.Call(ctx, "workspace/xfiles", &params, &res); err != nil {
@@ -88,7 +88,7 @@ func (fs *remoteFS) Walk(ctx context.Context, base string) ([]lsp.DocumentURI, e
 }
 
 func (fs *remoteFS) Clone(ctx context.Context, baseDir string) error {
-	filePaths, err := fs.Walk(ctx, "/")
+	filePaths, err := fs.Walk(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch all filePaths during clone")
 	}
