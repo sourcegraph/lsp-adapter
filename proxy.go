@@ -56,7 +56,7 @@ func (h jsonrpc2HandlerFunc) Handle(ctx context.Context, conn *jsonrpc2.Conn, re
 
 func main() {
 	flag.Usage = func() {
-		fmt.Printf("Usage: cloneproxy [OPTIONS] LSP_COMMAND_ARGS...\n\nOptions:\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [OPTIONS] LSP_COMMAND_ARGS...\n\nOptions:\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 
