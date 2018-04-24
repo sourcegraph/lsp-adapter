@@ -13,13 +13,14 @@ before_script:
   - GO_FILES=$(find . -type f -name '*.go' -not -path "./vendor/*")
 
 script:
+  - cd $TRAVIS_BUILD_DIR
   - test -z $(goimports -d $GO_FILES) # this test asserts import ordering
   - test -z $(gofmt -s -d $GO_FILES)
   - go test -v ./...
 
 before_deploy:
   - git tag "$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)"
-  
+
 deploy:
   provider: releases
   api_key:
