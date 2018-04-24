@@ -86,7 +86,7 @@ Connect via standard I/O to a language server whose command can be run with `rls
 Connect via standard I/O to a language server whose command can be run with `rls`, change the location of the cache directory (used for cloning the repo locally) to `/tmpDir`, and enable tracing for every request to/from the language server.
 
 ```shell
-> ./cloneproxy -cacheDir='/tmpDir' -trace rls
+> lsp-adapter -cacheDir='/tmpDir' -trace rls
 ```
 
 ## Docker 
