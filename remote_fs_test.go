@@ -145,16 +145,16 @@ func TestBatchOpen(t *testing.T) {
 
 	// open multiple files
 	runTest(t, files, func(ctx context.Context, fs *remoteFS) {
-		var allPaths []lsp.DocumentURI
+		var allURIs []lsp.DocumentURI
 
 		for _, aFile := range fileList {
-			allPaths = append(allPaths, aFile.uri)
+			allURIs = append(allURIs, aFile.uri)
 		}
 
-		results, err := fs.BatchOpen(ctx, allPaths)
+		results, err := fs.BatchOpen(ctx, allURIs)
 
 		if err != nil {
-			t.Error(errors.Wrapf(err, "when calling batchOpen on paths: %v", allPaths))
+			t.Error(errors.Wrapf(err, "when calling batchOpen on paths: %v", allURIs))
 		}
 
 		sort.Slice(results, func(i, j int) bool {
@@ -162,7 +162,7 @@ func TestBatchOpen(t *testing.T) {
 		})
 
 		if !reflect.DeepEqual(results, fileList) {
-			t.Errorf("for batchOpen(paths=%v) expected %v, actual %v", allPaths, fileList, results)
+			t.Errorf("for batchOpen(paths=%v) expected %v, actual %v", allURIs, fileList, results)
 		}
 	})
 
@@ -177,16 +177,16 @@ func TestBatchOpen(t *testing.T) {
 
 	// open multiple valid files and one invalid file
 	runTest(t, files, func(ctx context.Context, fs *remoteFS) {
-		allPaths := []lsp.DocumentURI{"non/existent/file.py"}
+		allURIs := []lsp.DocumentURI{"non/existent/file.py"}
 
 		for _, aFile := range fileList {
-			allPaths = append(allPaths, aFile.uri)
+			allURIs = append(allURIs, aFile.uri)
 		}
 
-		_, err := fs.BatchOpen(ctx, allPaths)
+		_, err := fs.BatchOpen(ctx, allURIs)
 
 		if err == nil {
-			t.Errorf("expected error when trying to batchOpen(paths=%v) which includes non-existent file '/non/existent/file.py'", allPaths)
+			t.Errorf("expected error when trying to batchOpen(paths=%v) which includes non-existent file '/non/existent/file.py'", allURIs)
 		}
 	})
 
