@@ -93,29 +93,10 @@ Connect via standard I/O to a language server whose command can be run with `rls
 
 ## Docker 
 
-There is a [skeleton Dockerfile](https://github.com/sourcegraph/lsp-adapter/blob/master/Dockerfile) that shows how to package `lsp-adapter` along with your desired language server inside of a docker container. 
+There is a [skeleton Dockerfile](./Dockerfile) that shows how to package `lsp-adapter` along with your desired language server inside of a docker container. There are fully working examples in [dockerfiles](./dockerfiles). For example [dockerfiles/rust/Dockerfile](./dockerfiles/rust/Dockerfile), which can be built with:
 
-A fully working example for Rust:
-
-```Dockerfile
-FROM golang:1.10-alpine
-WORKDIR /lsp-adapter
-RUN apk add --no-cache ca-certificates git
-COPY . .
-RUN CGO_ENABLED=0 go get -d -v ./...
-RUN CGO_ENABLED=0 go build -o lsp-adapter *.go
-
-# 👀 Add steps here to build the language server itself 👀
-# CMD ["echo", "🚨 This statement should be removed once you have added the logic to start up the language server! 🚨 Exiting..."]
-
-FROM rust:jessie
-RUN rustup update
-RUN rustup component add rls-preview rust-analysis rust-src
-
-# Modify these commands to connect to the language server
-COPY --from=0 /lsp-adapter/lsp-adapter .
-EXPOSE 8080
-CMD ["./lsp-adapter", "--proxyAddress=0.0.0.0:8080", "rls"]
+```shell
+> docker build -f dockerfiles/rust/Dockerfile .
 ```
 
 ## Did Open Hack 
