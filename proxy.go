@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"syscall"
 
@@ -23,10 +24,11 @@ import (
 )
 
 var (
-	proxyAddr       = flag.String("proxyAddress", "127.0.0.1:8080", "proxy server listen address (tcp)")
-	cacheDir        = flag.String("cacheDirectory", filepath.Join(os.TempDir(), "proxy-cache"), "cache directory location")
-	didOpenLanguage = flag.String("didOpenLanguage", "", "(HACK) If non-empty, send 'textDocument/didOpen' notifications with the specified language field (e.x. 'python') to the language server for every file.")
-	trace           = flag.Bool("trace", false, "trace logs to stderr")
+	proxyAddr         = flag.String("proxyAddress", "127.0.0.1:8080", "proxy server listen address (tcp)")
+	cacheDir          = flag.String("cacheDirectory", filepath.Join(os.TempDir(), "proxy-cache"), "cache directory location")
+	didOpenLanguage   = flag.String("didOpenLanguage", "", "(HACK) If non-empty, send 'textDocument/didOpen' notifications with the specified language field (e.x. 'python') to the language server for every file.")
+	jsonrpc2IDRewrite = flag.String("jsonrpc2IDRewrite", "none", "(HACK) Rewrite jsonrpc2 ID. none (default) is no rewriting. string will use a string ID. number will use number ID. Useful for language servers with non-spec complaint JSONRPC2 implementations.")
+	trace             = flag.Bool("trace", false, "trace logs to stderr")
 )
 
 type cloneProxy struct {
@@ -66,6 +68,12 @@ func main() {
 	lspBin := flag.Args()
 	if len(lspBin) == 0 {
 		log.Fatal("You must specify an LSP command (positional arguments).")
+	}
+
+	switch *jsonrpc2IDRewrite {
+	case "none", "string", "number":
+	default:
+		log.Fatalf("Invalid jsonrpc2IDRewrite value %q", *jsonrpc2IDRewrite)
 	}
 
 	lis, err := net.Listen("tcp", *proxyAddr)
@@ -271,20 +279,31 @@ func (r *roundTripper) roundTrip(ctx context.Context) error {
 		return err
 	}
 
-	callOpts := []jsonrpc2.CallOption{
-		// Some language servers don't properly support ID's that are strings (e.x. Rust),
-		// so we provide a number instead.
-
-		// Note that doing this breaks the `$/cancelRequest` and `$/partialResult` request.
-		jsonrpc2.PickID(jsonrpc2.ID{
-			Num:      r.globalRequestID.getAndInc(),
-			Str:      "",
-			IsString: false,
-		}),
+	var id jsonrpc2.ID
+	switch *jsonrpc2IDRewrite {
+	case "none":
+		id = r.req.ID
+	case "string":
+		// Some language servers don't properly support ID's that are ints
+		// (e.x. Clojure), so we provide a string instead. Note that doing this
+		// breaks the `$/cancelRequest` and `$/partialResult` request.
+		id = jsonrpc2.ID{
+			Str:      strconv.FormatUint(r.globalRequestID.getAndInc(), 10),
+			IsString: true,
+		}
+	case "number":
+		// Some language servers don't properly support ID's that are strings
+		// (e.x. Rust), so we provide a number instead. Note that doing this
+		// breaks the `$/cancelRequest` and `$/partialResult` request.
+		id = jsonrpc2.ID{
+			Num: r.globalRequestID.getAndInc(),
+		}
+	default:
+		panic("unexpected jsonrpc2IDRewrite " + *jsonrpc2IDRewrite)
 	}
 
 	var rawResult *json.RawMessage
-	err := r.dest.Call(ctx, r.req.Method, params, &rawResult, callOpts...)
+	err := r.dest.Call(ctx, r.req.Method, params, &rawResult, jsonrpc2.PickID(id))
 
 	if err != nil {
 		var respErr *jsonrpc2.Error
