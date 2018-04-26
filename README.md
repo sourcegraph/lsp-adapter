@@ -30,13 +30,15 @@ Usage: lsp-adapter [OPTIONS] LSP_COMMAND_ARGS...
 
 Options:
   -cacheDirectory string
-    	cache directory location (default "/var/folders/qq/1q_cmsmx6qv7bs_m6g_2pt1r0000gn/T/proxy-cache")
+      cache directory location (default "/tmp/proxy-cache")
   -didOpenLanguage string
-    	(HACK) If non-empty, send 'textDocument/didOpen' notifications with the specified language field (e.x. 'python') to the language server for every file.
+      (HACK) If non-empty, send 'textDocument/didOpen' notifications with the specified language field (e.x. 'python') to the language server for every file.
+  -jsonrpc2IDRewrite string
+      (HACK) Rewrite jsonrpc2 ID. none (default) is no rewriting. string will use a string ID. number will use a number ID. Useful for language servers with non-spec complaint JSONRPC2 implementations. (default "none")
   -proxyAddress string
-    	proxy server listen address (tcp) (default "127.0.0.1:8080")
+      proxy server listen address (tcp) (default "127.0.0.1:8080")
   -trace
-    	trace logs to stderr
+      trace logs to stderr
 ```
 ## How to Use `lsp-adapter`
 
@@ -101,4 +103,9 @@ There is a [skeleton Dockerfile](./Dockerfile) that shows how to package `lsp-ad
 
 ## Did Open Hack 
 
-Some language servers incorrectly follow the LSP spec, and refuse to work unless the `textDocument/didOpen` notification has been sent. See [this commit](https://github.com/sourcegraph/lsp-adapter/commit/1228a1fbaf102aa44575cec6802a5a211d117ee1) for more context. If the language server that you’re trying to use has this issue, try setting the `didOpenLanguage` flag (example: if a python language server had this issue - use `./lsp-adapter -didOpenLanguage=’python’...`) to work around it. 
+Some language servers incorrectly follow the LSP spec, and refuse to work unless the `textDocument/didOpen` notification has been sent. See [this commit](https://github.com/sourcegraph/lsp-adapter/commit/1228a1fbaf102aa44575cec6802a5a211d117ee1) for more context. If the language server that you’re trying to use has this issue, try setting the `didOpenLanguage` flag (example: if a python language server had this issue - use `./lsp-adapter -didOpenLanguage=python ...`) to work around it.
+
+
+## JSONRPC2 ID Rewrite Hack
+
+Some langauge servers incorrectly follow the JSONRPC2 spec, and fail if the Request ID is not a number of string. If the language server that you’re trying to use has this issue, try setting the `jsonrpc2IDRewrite` flag (example: if a rust language server had this issue - use `./lsp-adapter -jsonrpc2IDRewrite=number ...`) to work around it.
