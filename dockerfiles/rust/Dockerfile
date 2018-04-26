@@ -9,4 +9,5 @@ RUN rustup component add rls-preview rust-analysis rust-src
 
 COPY --from=0 /usr/local/bin/lsp-adapter /usr/local/bin/
 EXPOSE 8080
-CMD ["lsp-adapter", "--proxyAddress=0.0.0.0:8080", "rls"]
+# RLS does not support string ID fields https://github.com/rust-lang-nursery/rls/issues/805
+CMD ["lsp-adapter", "-proxyAddress=0.0.0.0:8080", "-jsonrpc2IDRewrite=number", "rls"]
