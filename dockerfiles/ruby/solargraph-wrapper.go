@@ -1,3 +1,6 @@
+// Command solargraph-wrapper starts up solargraph in the workspace root
+// (after reading the initialize request). It also proxies the TCP connection
+// of solargraph over stdin/stdout.
 package main
 
 import (
@@ -31,33 +34,43 @@ type lazyObjectStream struct {
 	err    error
 }
 
+// extractRootURIFromRequest will take the JSONRPC2 initialize request and
+// return the value of rootURI.
+func extractRootURIFromRequest(v interface{}) (string, error) {
+	// minimal json to get at rootUri
+	var msg struct {
+		Method string `json:"method"`
+		Params struct {
+			RootURI string `json:"rootUri"`
+		} `json:"params"`
+	}
+	b, err := json.Marshal(v)
+	if err != nil {
+		return "", err
+	}
+	if err = json.Unmarshal(b, &msg); err != nil {
+		return "", err
+	}
+
+	if msg.Method != "initialize" {
+		return "", fmt.Errorf("expected first message to be initialize, got %s", msg.Method)
+	}
+
+	return msg.Params.RootURI, nil
+}
+
+// WriteObject proxies WriteObject to the underlying stream. It treats the
+// first request specially and assumes it is an LSP initialize request. It
+// uses that to initialize the underlying stream via Connect.
 func (t *lazyObjectStream) WriteObject(v interface{}) error {
 	t.once.Do(func() {
 		defer close(t.ready)
-
-		// minimal json to get at rootUri
-		var msg struct {
-			Method string `json:"method"`
-			Params struct {
-				RootURI string `json:"rootUri"`
-			} `json:"params"`
-		}
-		b, err := json.Marshal(v)
+		rootURI, err := extractRootURIFromRequest(v)
 		if err != nil {
 			t.err = err
 			return
 		}
-		if err = json.Unmarshal(b, &msg); err != nil {
-			t.err = err
-			return
-		}
-
-		if msg.Method != "initialize" {
-			t.err = fmt.Errorf("expected first message to be initialize, got %s", msg.Method)
-			return
-		}
-
-		t.stream, t.err = t.Connect(msg.Params.RootURI)
+		t.stream, t.err = t.Connect(rootURI)
 	})
 	if t.err != nil {
 		return t.err
@@ -65,6 +78,7 @@ func (t *lazyObjectStream) WriteObject(v interface{}) error {
 	return t.stream.WriteObject(v)
 }
 
+// ReadObject proxies ReadObject to the underlying stream.
 func (t *lazyObjectStream) ReadObject(v interface{}) error {
 	// we wait for the initialize request (via WriteObject) to happen first.
 	<-t.ready
@@ -74,6 +88,8 @@ func (t *lazyObjectStream) ReadObject(v interface{}) error {
 	return t.stream.ReadObject(v)
 }
 
+// Close closes the underlying stream. If the stream has not been created, it
+// prevents future requests from opening the stream.
 func (t *lazyObjectStream) Close() error {
 	t.once.Do(func() {
 		t.err = jsonrpc2.ErrClosed
@@ -85,65 +101,69 @@ func (t *lazyObjectStream) Close() error {
 	return t.stream.Close()
 }
 
-func startSolargraph(ctx context.Context, dir string) (*exec.Cmd, int, error) {
+// startSolargraph starts up a TCP socket based solargraph server. It parses
+// its stderr to discover the port it is running on. On success it returns a
+// close function and port.
+func startSolargraph(ctx context.Context, dir string) (func() error, int, error) {
 	var (
 		stderr io.Reader
 		err    error
 	)
 	cmd := exec.CommandContext(ctx, "solargraph", "socket", "--port", "0")
-	cmd.Dir = dir // set CWD env var?
+	cmd.Dir = dir
 	cmd.Stdout = os.Stderr
 	stderr, err = cmd.StderrPipe()
 	if err != nil {
 		return nil, 0, err
 	}
+	// We want to parse stderr, but use a teereader so the user can also see
+	// stderr.
 	stderr = io.TeeReader(stderr, os.Stderr)
 	if err := cmd.Start(); err != nil {
 		return nil, 0, err
 	}
+	closer := func() error {
+		// best-effort
+		cmd.Process.Kill()
+		cmd.Wait()
+		return nil
+	}
 
+	// We are looking for \bPORT=(\d+)\b. We can achieve this nicely via using
+	// a Scanner splitting on words.
 	scanner := bufio.NewScanner(stderr)
 	scanner.Split(bufio.ScanWords)
 	for scanner.Scan() {
 		word := scanner.Text()
 		if strings.HasPrefix(word, "PORT=") {
-			// read the rest of stderr to keep the tee reader going
+			// We are done with scanning, but we need to keep reading stderr
+			// to prevent it blocking the process.
 			go io.Copy(ioutil.Discard, stderr)
 
 			port, err := strconv.Atoi(word[len("PORT="):])
 			if err != nil {
 				break
 			}
-			return cmd, port, nil
+			return closer, port, nil
 		}
 	}
 	// if we get to this point we didn't find the port. cleanup
-	cmd.Process.Kill()
-	cmd.Wait()
+	closer()
 	if err := scanner.Err(); err != nil {
 		return nil, 0, err
 	}
 	return nil, 0, errors.New("did not find port in stderr")
 }
 
-type cmd struct {
-	*exec.Cmd
-
-	// Reader and Writer do not need to be Closers since they are StdoutPipe
-	// and StdinPipe respectively. Both of those will be closed by Cmd.Wait.
-	io.Reader
-	io.Writer
+type readWriteCloser struct {
+	Closers []func() error
+	io.ReadWriter
 }
 
-func (c *cmdRWCloser) Close() error {
-	if err := c.Cmd.Process.Kill(); err != nil {
-		return errors.Wrap(err, "unable to kill process during cmdRWCloser.Close()")
+func (c *readWriteCloser) Close() error {
+	for _, fn := range c.Closers {
+		fn()
 	}
-
-	if err := c.Cmd.Wait(); err != nil {
-		return errors.Wrap(err, "unable to wait on cmd to finish during cmdRWCloser.Close()")
-	}
-
 	return nil
 }
 
@@ -164,13 +184,23 @@ func main() {
 				return nil, fmt.Errorf("rootURI %s does not have a file scheme", rootURI)
 			}
 
-			cmd, port, err := startSolargraph(ctx, filepath.FromSlash(u.Path))
+			closer, port, err := startSolargraph(ctx, filepath.FromSlash(u.Path))
 			if err != nil {
 				return nil, err
 			}
 
-			conn, err := net.Dial("tcp", "127.0.0.1:"+stconv.Itoa(port))
-			// TODO finish
+			conn, err := net.Dial("tcp", "127.0.0.1:"+strconv.Itoa(port))
+			if err != nil {
+				closer()
+				return nil, err
+			}
+
+			rwc := &readWriteCloser{
+				Closers:    []func() error{conn.Close, closer},
+				ReadWriter: conn,
+			}
+
+			return jsonrpc2.NewBufferedStream(rwc, jsonrpc2.VSCodeObjectCodec{}), nil
 		},
 	}
 
