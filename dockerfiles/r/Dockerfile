@@ -10,7 +10,12 @@ FROM rocker/rstudio:3.4.4
 
 RUN R -e 'chooseCRANmirror(graphics=FALSE, ind=65);source("https://install-github.me/REditorSupport/languageserver")'
 
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+ENTRYPOINT ["/tini", "--"]
+
 # Modify these commands to connect to the language server
-COPY --from=0 /usr/local/bin/lsp-adapter .
+COPY --from=0 /usr/local/bin/lsp-adapter /usr/local/bin
 EXPOSE 8080
-ENTRYPOINT ./lsp-adapter --didOpenLanguage='r' --trace --proxyAddress=0.0.0.0:8080 R --quiet --slave -e 'languageserver::run()'
+CMD ["lsp-adapter", "--didOpenLanguage=r", "--trace", "--proxyAddress=0.0.0.0:8080", "R", "--quiet", "--slave", "-e", "languageserver::run()"]
