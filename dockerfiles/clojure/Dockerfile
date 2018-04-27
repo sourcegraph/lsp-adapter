@@ -10,6 +10,11 @@ WORKDIR clojure-lsp
 RUN lein deps
 RUN lein compile
 
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+ENTRYPOINT ["/tini", "--"]
+
 COPY --from=0 /usr/local/bin/lsp-adapter /usr/local/bin/
 EXPOSE 8080
 # clojure-lsp does not support int ID fields https://github.com/snoe/clojure-lsp/issues/4
