@@ -16,19 +16,23 @@ script:
 - gox -arch 'amd64' -os 'linux windows darwin' github.com/sourcegraph/lsp-adapter
 - cd ..
 deploy:
-  provider: releases
-  api_key:
-    secure: hyjUIM0uBBd3H6DiFoWI6cvnSh8E9tOidduLEIrFijx2jjtORkmTgMzCLehAJ4aDFJJStwE5J9xllRZZx2fqiRF8kjeiygi2051ckuDxQCACQipSfSHu5Jy9+ZFHd3sJhjsx4AKms3lZnRoTwXIFEknNR2uOIbTUSwWYZQT8x8UFdbb16hCXfpdnWhCMHufPdZHtQSwXV5p5rwul5W8lrTNEHfui7iBXcEAgYmjkgL33onzjfFCh3cNPNBW1KeXOGMyKqRhbUjN1j16Fgm3577R5a706oqT6XSLwsYVBU2Y3bps1OYqdToORIW/pOX7OACBq1m87XxEVfkHKvDetKdt2VakRnO7OW9DWicqTJe22AnSa79uOtI9NGQC2zlH/SOsscmIyl5JIdDhjUTSqyySo4keI18Aq69rmvJwUFRtJ1auwRp7Dzfan+NONk6REMwq4ee43UXAEQjG7zyhv+IQEBYVR9LBZhiaw+hp2QmCiS40Sgp4/N7qW2D04GTgpeNC4kbGbV6vWcAQW17t9yeaj01ijmLKFkBWpq3b/7IE5NeoZlmNXU/XSEJykb+0oaR23lB9zzg56RFdxRMM2Ms0OhDJhOo6z6apsKlWSoywc8Q5Yk/krnfmOX73jUQB4v2NvNQM3y7tGuT7JJ6yxCHqpxtJRAUWFetGQ2ptuEJ4=
-  file_glob: true
-  file: release/*
-  skip_cleanup: true
-  on:
-    tags: true
+  - provider: releases
+    api_key:
+      secure: hyjUIM0uBBd3H6DiFoWI6cvnSh8E9tOidduLEIrFijx2jjtORkmTgMzCLehAJ4aDFJJStwE5J9xllRZZx2fqiRF8kjeiygi2051ckuDxQCACQipSfSHu5Jy9+ZFHd3sJhjsx4AKms3lZnRoTwXIFEknNR2uOIbTUSwWYZQT8x8UFdbb16hCXfpdnWhCMHufPdZHtQSwXV5p5rwul5W8lrTNEHfui7iBXcEAgYmjkgL33onzjfFCh3cNPNBW1KeXOGMyKqRhbUjN1j16Fgm3577R5a706oqT6XSLwsYVBU2Y3bps1OYqdToORIW/pOX7OACBq1m87XxEVfkHKvDetKdt2VakRnO7OW9DWicqTJe22AnSa79uOtI9NGQC2zlH/SOsscmIyl5JIdDhjUTSqyySo4keI18Aq69rmvJwUFRtJ1auwRp7Dzfan+NONk6REMwq4ee43UXAEQjG7zyhv+IQEBYVR9LBZhiaw+hp2QmCiS40Sgp4/N7qW2D04GTgpeNC4kbGbV6vWcAQW17t9yeaj01ijmLKFkBWpq3b/7IE5NeoZlmNXU/XSEJykb+0oaR23lB9zzg56RFdxRMM2Ms0OhDJhOo6z6apsKlWSoywc8Q5Yk/krnfmOX73jUQB4v2NvNQM3y7tGuT7JJ6yxCHqpxtJRAUWFetGQ2ptuEJ4=
+    file_glob: true
+    file: release/*
+    skip_cleanup: true
+    on:
+      tags: true
+  - provider: script
+    env:
+      matrix:
+        - DOCKER_REPOSITORY=sourcegraph/codeintel-exp-ruby DOCKERFILE_PATH=dockerfiles/ruby/Dockerfile
+        - DOCKER_REPOSITORY=sourcegraph/codeintel-exp-rust DOCKERFILE_PATH=dockerfiles/rust/Dockerfile
+    script: bash deploy_image.sh
+    on:
+      branch: master
 branches:
   only:
   - master
   - "/^v\\d+\\.\\d+\\.\\d+(-\\S*)?$/"
-env:
-  maxtrix:
-  - secure: lu3netmZgm3iUI0RKmBr8Zi0xXE38gnMDSYG5UK+N8OzsO1lrWrTYrfqIEkZrEKEHDebKIk2ufNpDHzZ7etFVwEyzhuyjLHEU5/C2Mfb/FzV6Rd6ZMgHSXbnN4T2AaYsO+cA9Nk6iiszmlv2cfKw5uOMV8abcsMQ0nILVXTYe3V50jeuwzajcOtRYlOQW+nX391yyc+ao3w8ZrB519pw4HVuNDd60c/OzNozdXkV0EU4NM3YShY54f1bPsb+SHkxdaDClXt9Z4lXWlliJChv0QfG21WhsbysagS7mTPGagGUf8dHgQ/V657+bMwikJUt9C10+x+BK03EbKSjWJv4OcXLKkuGVPZO7Y6VpFfIoD7ibFx6YdzGaSzQgGlt1/QKZX+H/v7V3IE1lTGUw3dejVLKOG0SggtqiBDYedeRyxgPqiCCUZdii4HmkAOiDiVhOiHkUwoxnubHPVD8qdMPWRyc7ptAt/Cs1BFwSfGvnx8gWH6tiVEt18nZg1+Rd1yp03qVzibKUquho1/Z03jlnXW4rGZEsWLRYB2wQ15Z4xgPHDG0w4Jmdi2L5WQFkMJMiYAvsZLATMPoKE1vBo/GtQZZ6Hr5JSzNzf+1zitGsbBiDAOjO52RhzCKjbswP8Ldd3jQOmlrfUQCshL/4E3ozzbcnPvt16QJiw2eJ8Vp9cY=
-  - secure: iR7jj/MDthuKTO+LQoYB+/ut62eZ2RzUw85zE15uqCR3l6YjoIqx0y+En89QCt79yqEr59EYcBj0M6z/Y91Lu4EKv0jwTvFps2+DcARBG/LZHNJnw6+6LXkfwUyLcGLdBh92KfcEyp8Hr7TpUb+Cqygx4Sa1vu18U3rIfXoRrk0grhSk4EwdVBxZrDkcmEP7NCYFpymsuNh9x5m7tKFuQ9X9B/+VUfelh6IyVQE+RxYPqbv1IYI6uEDuuZN5lbArdbqBWfReLN3V1KWI9UHT6UnUFVEYo/uJuqOaE8aFQQouTcmWFkRYlsj50Xvf39MK4I0holPnh7MqtCYMposWXu+HPxkffeUE4vW6Jo9+8J/peWzleQ9mWxxL21DeR5Cn4r6h2QOLUtasd+ZcIKT9nN2HX4sc9BT1UpY7InJSDb82VHfRzpoRF4+RaAGnFVgExlv/qdTbWOZvbgHKpeSefUiF5fnNist/V/EGDRb/p6BgcDG2kHJrzvn161tjQSIWn04B39HB1ZCdO8EuUQ7RyAmZSDbYqcouYRAEdOihShAmN4ltW1pZwnLfAFDInN7MqnUyw5fYcBkHuX0wISfKpBjG+B8rtf0vsKLeZWLjLZzoZmDe5rFxHNcjxUP0qky+nZ/2gcIeLENFkUOHyKZwPM9sdLvYPd5/BVO+dRlazNA=
