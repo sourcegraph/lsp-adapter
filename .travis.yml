@@ -32,9 +32,8 @@ jobs:
     - stage: release
       if: branch = master AND type = push AND fork = false
       env:
-        matrix:
-          - DOCKER_REPOSITORY=sourcegraph/codeintel-exp-ruby DOCKERFILE_PATH=dockerfiles/ruby/Dockerfile
-          - DOCKER_REPOSITORY=sourcegraph/codeintel-exp-rust DOCKERFILE_PATH=dockerfiles/rust/Dockerfile
+        - DOCKER_REPOSITORY=sourcegraph/codeintel-exp-ruby DOCKERFILE_PATH=dockerfiles/ruby/Dockerfile
+        - DOCKER_REPOSITORY=sourcegraph/codeintel-exp-rust DOCKERFILE_PATH=dockerfiles/rust/Dockerfile
       script: bash deploy_image.sh
 
 branches:
