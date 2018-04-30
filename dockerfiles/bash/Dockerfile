@@ -18,7 +18,7 @@ USER node
 # see https://github.com/nodejs/docker-node/blob/master/docs/BestPractices.md#global-npm-dependencies
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV PATH=$PATH:/home/node/.npm-global/bin
-RUN npm i -g bash-language-server
+RUN npm i -g bash-language-server@1
 
 COPY --from=0 /usr/local/bin/lsp-adapter /usr/local/bin
 EXPOSE 8080
