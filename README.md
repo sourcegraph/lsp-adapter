@@ -103,9 +103,9 @@ There is a [skeleton Dockerfile](./Dockerfile) that shows how to package `lsp-ad
 
 ## Did Open Hack 
 
-Some language servers incorrectly follow the LSP spec, and refuse to work unless the `textDocument/didOpen` notification has been sent. See [this commit](https://github.com/sourcegraph/lsp-adapter/commit/1228a1fbaf102aa44575cec6802a5a211d117ee1) for more context. If the language server that you’re trying to use has this issue, try setting the `didOpenLanguage` flag (example: if a python language server had this issue - use `./lsp-adapter -didOpenLanguage=python ...`) to work around it.
+Some language servers do not follow the LSP spec correctly and refuse to work unless the `textDocument/didOpen` notification has been sent. See [this commit](https://github.com/sourcegraph/lsp-adapter/commit/1228a1fbaf102aa44575cec6802a5a211d117ee1) for more context. If the language server that you’re trying to use has this issue, try setting the `didOpenLanguage` flag (example: if a python language server had this issue - use `./lsp-adapter -didOpenLanguage=python ...`) to work around it.
 
 
 ## JSONRPC2 ID Rewrite Hack
 
-Some langauge servers incorrectly follow the JSONRPC2 spec, and fail if the Request ID is not a number of string. If the language server that you’re trying to use has this issue, try setting the `jsonrpc2IDRewrite` flag (example: if a rust language server had this issue - use `./lsp-adapter -jsonrpc2IDRewrite=number ...`) to work around it.
+Some langauge servers do not follow the JSONRPC2 spec correctly and fail if the Request ID is not a number of string. If the language server that you’re trying to use has this issue, try setting the `jsonrpc2IDRewrite` flag (example: if a rust language server had this issue - use `./lsp-adapter -jsonrpc2IDRewrite=number ...`) to work around it.
