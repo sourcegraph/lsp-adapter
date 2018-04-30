@@ -1,38 +1,43 @@
 language: go
+
 go:
-- 1.10.x
-install:
-- go get -v golang.org/x/tools/cmd/goimports
-- go get -v github.com/mitchellh/gox
-before_script:
-- cd $TRAVIS_BUILD_DIR
-- GO_FILES=$(find . -type f -name '*.go' -not -path "./vendor/*")
-script:
-- test -z $(goimports -d $GO_FILES) # this test asserts import ordering
-- test -z $(gofmt -s -d $GO_FILES)
-- go test -v ./...
-- mkdir release
-- cd release
-- gox -arch 'amd64' -os 'linux windows darwin' github.com/sourcegraph/lsp-adapter
-- cd ..
-deploy:
-  - provider: releases
-    api_key:
-      secure: hyjUIM0uBBd3H6DiFoWI6cvnSh8E9tOidduLEIrFijx2jjtORkmTgMzCLehAJ4aDFJJStwE5J9xllRZZx2fqiRF8kjeiygi2051ckuDxQCACQipSfSHu5Jy9+ZFHd3sJhjsx4AKms3lZnRoTwXIFEknNR2uOIbTUSwWYZQT8x8UFdbb16hCXfpdnWhCMHufPdZHtQSwXV5p5rwul5W8lrTNEHfui7iBXcEAgYmjkgL33onzjfFCh3cNPNBW1KeXOGMyKqRhbUjN1j16Fgm3577R5a706oqT6XSLwsYVBU2Y3bps1OYqdToORIW/pOX7OACBq1m87XxEVfkHKvDetKdt2VakRnO7OW9DWicqTJe22AnSa79uOtI9NGQC2zlH/SOsscmIyl5JIdDhjUTSqyySo4keI18Aq69rmvJwUFRtJ1auwRp7Dzfan+NONk6REMwq4ee43UXAEQjG7zyhv+IQEBYVR9LBZhiaw+hp2QmCiS40Sgp4/N7qW2D04GTgpeNC4kbGbV6vWcAQW17t9yeaj01ijmLKFkBWpq3b/7IE5NeoZlmNXU/XSEJykb+0oaR23lB9zzg56RFdxRMM2Ms0OhDJhOo6z6apsKlWSoywc8Q5Yk/krnfmOX73jUQB4v2NvNQM3y7tGuT7JJ6yxCHqpxtJRAUWFetGQ2ptuEJ4=
-    file_glob: true
-    file: release/*
-    skip_cleanup: true
-    on:
-      tags: true
-  - provider: script
-    env:
-      matrix:
-        - DOCKER_REPOSITORY=sourcegraph/codeintel-exp-ruby DOCKERFILE_PATH=dockerfiles/ruby/Dockerfile
-        - DOCKER_REPOSITORY=sourcegraph/codeintel-exp-rust DOCKERFILE_PATH=dockerfiles/rust/Dockerfile
-    script: bash deploy_image.sh
-    on:
-      branch: master
+  - 1.10.x
+
+jobs:
+  include:
+    - stage: test
+      install:
+        - go get -v golang.org/x/tools/cmd/goimports
+        - go get -v github.com/mitchellh/gox
+      before_script:
+        - cd $TRAVIS_BUILD_DIR
+        - GO_FILES=$(find . -type f -name '*.go' -not -path "./vendor/*")
+      script:
+        - test -z $(goimports -d $GO_FILES) # this test asserts import ordering
+        - test -z $(gofmt -s -d $GO_FILES)
+        - go test -v ./...
+        - mkdir release
+        - cd release
+        - gox -arch 'amd64' -os 'linux windows darwin' github.com/sourcegraph/lsp-adapter
+        - cd ..
+    - stage: release
+      if: tag IS present AND branch = master AND type = push AND fork = false
+      deploy:
+        provider: releases
+        api_key:
+          secure: hyjUIM0uBBd3H6DiFoWI6cvnSh8E9tOidduLEIrFijx2jjtORkmTgMzCLehAJ4aDFJJStwE5J9xllRZZx2fqiRF8kjeiygi2051ckuDxQCACQipSfSHu5Jy9+ZFHd3sJhjsx4AKms3lZnRoTwXIFEknNR2uOIbTUSwWYZQT8x8UFdbb16hCXfpdnWhCMHufPdZHtQSwXV5p5rwul5W8lrTNEHfui7iBXcEAgYmjkgL33onzjfFCh3cNPNBW1KeXOGMyKqRhbUjN1j16Fgm3577R5a706oqT6XSLwsYVBU2Y3bps1OYqdToORIW/pOX7OACBq1m87XxEVfkHKvDetKdt2VakRnO7OW9DWicqTJe22AnSa79uOtI9NGQC2zlH/SOsscmIyl5JIdDhjUTSqyySo4keI18Aq69rmvJwUFRtJ1auwRp7Dzfan+NONk6REMwq4ee43UXAEQjG7zyhv+IQEBYVR9LBZhiaw+hp2QmCiS40Sgp4/N7qW2D04GTgpeNC4kbGbV6vWcAQW17t9yeaj01ijmLKFkBWpq3b/7IE5NeoZlmNXU/XSEJykb+0oaR23lB9zzg56RFdxRMM2Ms0OhDJhOo6z6apsKlWSoywc8Q5Yk/krnfmOX73jUQB4v2NvNQM3y7tGuT7JJ6yxCHqpxtJRAUWFetGQ2ptuEJ4=
+        file_glob: true
+        file: release/*
+        skip_cleanup: true
+    - stage: release
+      if: branch = master AND type = push AND fork = false
+      env:
+        matrix:
+          - DOCKER_REPOSITORY=sourcegraph/codeintel-exp-ruby DOCKERFILE_PATH=dockerfiles/ruby/Dockerfile
+          - DOCKER_REPOSITORY=sourcegraph/codeintel-exp-rust DOCKERFILE_PATH=dockerfiles/rust/Dockerfile
+      script: bash deploy_image.sh
+
 branches:
   only:
-  - master
-  - "/^v\\d+\\.\\d+\\.\\d+(-\\S*)?$/"
+    - master
+    - "/^v\\d+\\.\\d+\\.\\d+(-\\S*)?$/"
