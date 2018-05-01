@@ -56,7 +56,7 @@ func TestClone(t *testing.T) {
 	defer os.Remove(baseDir)
 
 	runTest(t, files, func(ctx context.Context, fs *remoteFS) {
-		err := fs.Clone(ctx, baseDir)
+		err := fs.Clone(ctx, baseDir, nil)
 
 		if err != nil {
 			t.Errorf("when calling clone(baseDir=%s): %v", baseDir, err)

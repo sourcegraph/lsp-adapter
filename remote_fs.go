@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"sync"
 
@@ -87,10 +88,32 @@ func (fs *remoteFS) Walk(ctx context.Context) ([]lsp.DocumentURI, error) {
 	return fileURIs, nil
 }
 
-func (fs *remoteFS) Clone(ctx context.Context, baseDir string) error {
+func (fs *remoteFS) Clone(ctx context.Context, baseDir string, globs []string) error {
+	if err := os.MkdirAll(baseDir, os.ModePerm); err != nil {
+		return err
+	}
+
 	filePaths, err := fs.Walk(ctx)
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch all filePaths during clone")
+	}
+
+	// filter
+	if len(globs) > 0 {
+		i := 0
+		for _, filePath := range filePaths {
+			name := path.Base(string(filePath))
+			for _, pattern := range globs {
+				if matched, err := path.Match(pattern, name); err != nil {
+					return errors.Wrapf(err, "bad glob pattern %q", pattern)
+				} else if matched {
+					filePaths[i] = filePath
+					i++
+					break
+				}
+			}
+		}
+		filePaths = filePaths[:i]
 	}
 
 	files, err := fs.BatchOpen(ctx, filePaths)
