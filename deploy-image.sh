@@ -1,4 +1,7 @@
 #!/bin/bash
+$DOCKER_REPOSITORY="sourcegraph/codeintel-$1"
+$DOCKERFILE_PATH="./dockerfiles/$2/Dockerfile"
+
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 docker build \
 	-t ${DOCKER_REPOSITORY}:latest \

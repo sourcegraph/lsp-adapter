@@ -31,10 +31,10 @@ jobs:
         skip_cleanup: true
     - stage: release
       if: branch = master AND type = push AND fork = false
-      env:
-        - DOCKER_REPOSITORY=sourcegraph/codeintel-exp-ruby DOCKERFILE_PATH=dockerfiles/ruby/Dockerfile
-        - DOCKER_REPOSITORY=sourcegraph/codeintel-exp-rust DOCKERFILE_PATH=dockerfiles/rust/Dockerfile
-      script: bash deploy_image.sh
+      script: bash deploy_image.sh ruby
+    - stage: release
+      if: branch = master AND type = push AND fork = false
+      script: bash deploy_image.sh rust
 
 branches:
   only:
