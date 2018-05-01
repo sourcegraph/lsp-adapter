@@ -30,11 +30,15 @@ jobs:
         file: release/*
         skip_cleanup: true
     - stage: release
+      install: skip
       if: branch = master AND type = push AND fork = false
-      script: bash deploy_image.sh ruby
+      env: LANGUAGE=ruby
+      script: bash deploy_image.sh
     - stage: release
+      install: skip
       if: branch = master AND type = push AND fork = false
-      script: bash deploy_image.sh rust
+      env: LANGUAGE=rust
+      script: bash deploy_image.sh
 
 branches:
   only:
