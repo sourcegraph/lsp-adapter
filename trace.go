@@ -30,7 +30,7 @@ func traceRequests(family, sessionID string) jsonrpc2.ConnOpt {
 			traces = map[jsonrpc2.ID]nettrace.Trace{}
 		}()
 
-		jsonrpc2.OnRecv(func(req *jsonrpc2.Request, resp *jsonrpc2.Response) {
+		jsonrpc2.OnSend(func(req *jsonrpc2.Request, resp *jsonrpc2.Response) {
 			if req == nil || req.Notif || resp != nil {
 				return
 			}
@@ -51,8 +51,8 @@ func traceRequests(family, sessionID string) jsonrpc2.ConnOpt {
 			tr.LazyPrintf("params: %s", lazyMarshal{req.Params})
 			tr.LazyPrintf("session: %s", sessionID)
 		})(c)
-		jsonrpc2.OnSend(func(req *jsonrpc2.Request, resp *jsonrpc2.Response) {
-			if req != nil || resp == nil {
+		jsonrpc2.OnRecv(func(req *jsonrpc2.Request, resp *jsonrpc2.Response) {
+			if resp == nil {
 				return
 			}
 
