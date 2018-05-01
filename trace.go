@@ -2,6 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"log"
+	"net/http"
+	"net/http/pprof"
 	"sync"
 
 	"github.com/sourcegraph/jsonrpc2"
@@ -124,6 +127,35 @@ func traceEventLog(family, title string) jsonrpc2.ConnOpt {
 			}
 		})(c)
 	}
+}
+
+func debugServer(addr string) {
+	if addr == "" {
+		return
+	}
+
+	nettrace.AuthRequest = func(req *http.Request) (any, sensitive bool) {
+		return true, true
+	}
+
+	pp := http.NewServeMux()
+	index := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`
+				<a href="/debug/pprof/">PProf</a><br>
+				<a href="/debug/requests">Requests</a><br>
+				<a href="/debug/events">Events</a><br>
+			`))
+	})
+	pp.Handle("/", index)
+	pp.Handle("/debug", index)
+	pp.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
+	pp.Handle("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
+	pp.Handle("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))
+	pp.Handle("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
+	pp.Handle("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
+	pp.Handle("/debug/requests", http.HandlerFunc(nettrace.Traces))
+	pp.Handle("/debug/events", http.HandlerFunc(nettrace.Events))
+	log.Println("warning: could not start debug HTTP server:", http.ListenAndServe(addr, pp))
 }
 
 type lazyMarshal struct {

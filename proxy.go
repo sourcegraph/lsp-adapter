@@ -8,8 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-	"net/http"
-	_ "net/http/pprof"
 	"net/url"
 	"os"
 	"os/signal"
@@ -90,9 +88,7 @@ func main() {
 	log.Printf("CloneProxy: accepting connections at %s", lis.Addr())
 
 	if *pprofAddr != "" {
-		go func() {
-			log.Fatal(http.ListenAndServe(*pprofAddr, nil))
-		}()
+		go debugServer(*pprofAddr)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
