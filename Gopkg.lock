@@ -44,7 +44,7 @@
   branch = "master"
   name = "github.com/sourcegraph/jsonrpc2"
   packages = ["."]
-  revision = "2ed59d3304d3c7a972e6f58064ab9cdad4cbfc2c"
+  revision = "a3d86c792f0f5a0c0c2c4ed9157125e914cb5534"
 
 [[projects]]
   branch = "master"
