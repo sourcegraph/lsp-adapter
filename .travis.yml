@@ -45,6 +45,8 @@ jobs:
       env: LANGUAGE=rust
     - <<: *release_job
       env: LANGUAGE=html
+    - <<: *release_job
+      env: LANGUAGE=elixir
 
 branches:
   only:
