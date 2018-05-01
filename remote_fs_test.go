@@ -17,7 +17,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/sourcegraph/go-langserver/pkg/lsp"
 
-	"github.com/pkg/errors"
 	"github.com/sourcegraph/go-langserver/pkg/lspext"
 	"github.com/sourcegraph/jsonrpc2"
 )
@@ -36,6 +35,10 @@ func TestClone(t *testing.T) {
 			uri:     "file:///dir/c.py",
 			content: "This is file C.",
 		},
+		{
+			uri:     "file:///dir/d.go",
+			content: "This is file D.",
+		},
 	}
 
 	files := make(map[string]string)
@@ -48,52 +51,83 @@ func TestClone(t *testing.T) {
 		files[parsedFileURI.Path] = aFile.content
 	}
 
-	baseDir, err := ioutil.TempDir("", uuid.New().String()+"testClone")
-	if err != nil {
-		t.Fatalf("when creating temp directory for clone test, err: %v", err)
+	cases := []struct {
+		Name  string
+		Globs []string
+		Want  []string
+	}{
+		{
+			Name:  "all",
+			Globs: nil,
+			Want:  []string{"/a.py", "/b.py", "/dir/c.py", "/dir/d.go"},
+		},
+		{
+			Name:  "subset",
+			Globs: []string{"*.py"},
+			Want:  []string{"/a.py", "/b.py", "/dir/c.py"},
+		},
+		{
+			Name:  "multi",
+			Globs: []string{"a*", "b*"},
+			Want:  []string{"/a.py", "/b.py"},
+		},
+		{
+			Name:  "none",
+			Globs: []string{"NOMATCH"},
+			Want:  []string{},
+		},
 	}
 
-	defer os.Remove(baseDir)
-
-	runTest(t, files, func(ctx context.Context, fs *remoteFS) {
-		err := fs.Clone(ctx, baseDir)
-
-		if err != nil {
-			t.Errorf("when calling clone(baseDir=%s): %v", baseDir, err)
-		}
-
-		discoveredFiles := make(map[string]string)
-
-		err = filepath.Walk(baseDir, func(currPath string, info os.FileInfo, err error) error {
-
+	for _, tt := range cases {
+		t.Run(tt.Name, func(t *testing.T) {
+			baseDir, err := ioutil.TempDir("", uuid.New().String()+"testClone")
 			if err != nil {
-				return errors.Wrapf(err, "when walking walkFunc for path %s", currPath)
+				t.Fatalf("when creating temp directory for clone test, err: %v", err)
 			}
 
-			if info.IsDir() {
-				return nil
-			}
+			defer os.Remove(baseDir)
 
-			content, err := ioutil.ReadFile(currPath)
-			if err != nil {
-				return errors.Wrapf(err, "when calling readFile for path %s", currPath)
-			}
+			runTest(t, files, func(ctx context.Context, fs *remoteFS) {
+				want := make(map[string]string)
+				for _, k := range tt.Want {
+					want[k] = files[k]
+				}
 
-			currPath = path.Join("/", filepath.ToSlash(filepathTrimPrefix(currPath, baseDir)))
+				err := fs.Clone(ctx, baseDir, tt.Globs)
+				if err != nil {
+					t.Errorf("when calling clone(baseDir=%s): %v", baseDir, err)
+				}
 
-			discoveredFiles[currPath] = string(content)
+				found, err := findAll(baseDir)
+				if err != nil {
+					t.Errorf("when calling Walk for baseDir %s: %v", baseDir, err)
+				}
 
-			return nil
+				if !reflect.DeepEqual(found, want) {
+					t.Errorf("for clone(baseDir=%s) expected %v, actual %v", baseDir, want, found)
+				}
+			})
 		})
+	}
+}
 
+func findAll(baseDir string) (map[string]string, error) {
+	found := make(map[string]string)
+	err := filepath.Walk(baseDir, func(currPath string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
+			return err
+		}
+
+		content, err := ioutil.ReadFile(currPath)
 		if err != nil {
-			t.Errorf("when calling Walk for baseDir %s: %v", baseDir, err)
+			return err
 		}
 
-		if !reflect.DeepEqual(files, discoveredFiles) {
-			t.Errorf("for clone(baseDir=%s) expected %v, actual %v", baseDir, files, discoveredFiles)
-		}
+		currPath = path.Join("/", filepath.ToSlash(filepathTrimPrefix(currPath, baseDir)))
+		found[currPath] = string(content)
+		return nil
 	})
+	return found, err
 }
 
 func TestBatchOpen(t *testing.T) {
