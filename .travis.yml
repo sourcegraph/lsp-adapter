@@ -51,6 +51,8 @@ jobs:
       env: LANGUAGE=css
     - <<: *release_job
       env: LANGUAGE=cpp
+    - <<: *release_job
+      env: LANGUAGE=clojure
 
 branches:
   only:
