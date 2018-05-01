@@ -33,6 +33,8 @@ Options:
       cache directory location (default "/tmp/proxy-cache")
   -didOpenLanguage string
       (HACK) If non-empty, send 'textDocument/didOpen' notifications with the specified language field (e.x. 'python') to the language server for every file.
+  -glob string
+      A colon (:) separated list of file globs to sync locally. By default we place all files into the workspace, but some language servers may only look at a subset of files. Specifying this allows us to avoid syncing all files. Note: This is done base name only.
   -jsonrpc2IDRewrite string
       (HACK) Rewrite jsonrpc2 ID. none (default) is no rewriting. string will use a string ID. number will use a number ID. Useful for language servers with non-spec complaint JSONRPC2 implementations. (default "none")
   -proxyAddress string
@@ -100,6 +102,10 @@ There is a [skeleton Dockerfile](./Dockerfile) that shows how to package `lsp-ad
 ```shell
 > docker build -f dockerfiles/rust/Dockerfile .
 ```
+
+## Glob
+
+Most language servers will only ever look at files that match a set of known patterns. On initialize lsp-adapter copies a full work-tree to disk for a repository, but by specify `-glob` we can avoid copying over files that will not be looked at. For example, if a python language server only looks at `py` and `pyc` files you can specify `-glob=*.py:*.pyc`. The matching is done on the basename of the path using [path.Match](https://godoc.org/path#Match).
 
 ## Did Open Hack 
 
