@@ -53,6 +53,8 @@ jobs:
       env: LANGUAGE=cpp
     - <<: *release_job
       env: LANGUAGE=clojure
+    - <<: *release_job
+      env: LANGUAGE=bash
 
 branches:
   only:
