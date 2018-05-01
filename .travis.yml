@@ -16,7 +16,6 @@ jobs:
     - stage: test
       install:
         - go get -v golang.org/x/tools/cmd/goimports
-        - go get -v github.com/mitchellh/gox
       before_script:
         - cd $TRAVIS_BUILD_DIR
         - GO_FILES=$(find . -type f -name '*.go' -not -path "./vendor/*")
@@ -24,12 +23,15 @@ jobs:
         - test -z $(goimports -d $GO_FILES) # this test asserts import ordering
         - test -z $(gofmt -s -d $GO_FILES)
         - go test -v ./...
+    - stage: release
+      if: tag IS present AND branch = master AND type = push AND fork = false
+      install:
+        - go get -v github.com/mitchellh/gox
+      script:
         - mkdir release
         - cd release
         - gox -arch 'amd64' -os 'linux windows darwin' github.com/sourcegraph/lsp-adapter
         - cd ..
-    - stage: release
-      if: tag IS present AND branch = master AND type = push AND fork = false
       deploy:
         provider: releases
         api_key:
