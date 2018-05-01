@@ -3,6 +3,14 @@ language: go
 go:
   - 1.10.x
 
+release_job: &release_job
+  stage: release
+  services:
+    - docker
+  install: skip
+  if: branch = master AND type = push AND fork = false
+  script: bash deploy_image.sh
+
 jobs:
   include:
     - stage: test
@@ -29,16 +37,10 @@ jobs:
         file_glob: true
         file: release/*
         skip_cleanup: true
-    - stage: release
-      install: skip
-      if: branch = master AND type = push AND fork = false
+    - <<: *release_job
       env: LANGUAGE=ruby
-      script: bash deploy_image.sh
-    - stage: release
-      install: skip
-      if: branch = master AND type = push AND fork = false
+    - <<: *release_job
       env: LANGUAGE=rust
-      script: bash deploy_image.sh
 
 branches:
   only:
