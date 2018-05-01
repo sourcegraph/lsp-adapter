@@ -1,6 +1,8 @@
 #!/bin/bash
-$DOCKER_REPOSITORY="sourcegraph/codeintel-$LANGUAGE"
-$DOCKERFILE_PATH="./dockerfiles/$LANGUAGE/Dockerfile"
+set -e
+
+DOCKER_REPOSITORY="sourcegraph/codeintel-$LANGUAGE"
+DOCKERFILE_PATH="./dockerfiles/$LANGUAGE/Dockerfile"
 
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 docker build \
