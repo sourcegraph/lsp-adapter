@@ -145,7 +145,7 @@ func main() {
 				serverConnOpts = append(serverConnOpts, jsonrpc2.LogMessages(log.New(os.Stderr, fmt.Sprintf("TRACE %s ", sessionID), log.Ltime)))
 			}
 			if *pprofAddr != "" {
-				serverConnOpts = append(serverConnOpts, traceRequests("server", sessionID), traceEventLog("server", sessionID))
+				serverConnOpts = append(serverConnOpts, traceRequests(sessionID), traceEventLog("server", sessionID))
 			}
 			proxy.client = jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(clientNetConn, jsonrpc2.VSCodeObjectCodec{}), jsonrpc2.AsyncHandler(jsonrpc2HandlerFunc(proxy.handleClientRequest)))
 			proxy.server = jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(lsConn, jsonrpc2.VSCodeObjectCodec{}), jsonrpc2.AsyncHandler(jsonrpc2HandlerFunc(proxy.handleServerRequest)), serverConnOpts...)

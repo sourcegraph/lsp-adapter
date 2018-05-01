@@ -11,7 +11,7 @@ import (
 	nettrace "golang.org/x/net/trace"
 )
 
-func traceRequests(family, sessionID string) jsonrpc2.ConnOpt {
+func traceRequests(sessionID string) jsonrpc2.ConnOpt {
 	return func(c *jsonrpc2.Conn) {
 		var (
 			mu     sync.Mutex
@@ -42,14 +42,13 @@ func traceRequests(family, sessionID string) jsonrpc2.ConnOpt {
 				tr.LazyPrintf("error ID repeated")
 				tr.SetError()
 			} else {
-				tr = nettrace.New(family, req.Method)
+				tr = nettrace.New(req.Method, sessionID)
 				traces[req.ID] = tr
 			}
 			mu.Unlock()
 
 			tr.LazyPrintf("id: %s", lazyMarshal{req.ID})
 			tr.LazyPrintf("params: %s", lazyMarshal{req.Params})
-			tr.LazyPrintf("session: %s", sessionID)
 		})(c)
 		jsonrpc2.OnRecv(func(req *jsonrpc2.Request, resp *jsonrpc2.Response) {
 			if resp == nil {
