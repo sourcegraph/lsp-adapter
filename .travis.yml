@@ -55,6 +55,8 @@ jobs:
       env: LANGUAGE=clojure
     - <<: *release_job
       env: LANGUAGE=bash
+    - <<: *release_job
+      env: LANGUAGE=docker
 
 branches:
   only:
