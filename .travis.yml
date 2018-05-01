@@ -43,6 +43,8 @@ jobs:
       env: LANGUAGE=ruby
     - <<: *release_job
       env: LANGUAGE=rust
+    - <<: *release_job
+      env: LANGUAGE=html
 
 branches:
   only:
