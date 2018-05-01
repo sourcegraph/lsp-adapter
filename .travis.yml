@@ -49,6 +49,8 @@ jobs:
       env: LANGUAGE=elixir
     - <<: *release_job
       env: LANGUAGE=css
+    - <<: *release_job
+      env: LANGUAGE=cpp
 
 branches:
   only:
