@@ -55,37 +55,7 @@ func retryDial(network, address string) (net.Conn, error) {
 	return conn, err
 }
 
-func mainErr() error {
-	if len(os.Args) != 2 {
-		return errors.Errorf("USAGE: %s language", os.Args[0])
-	}
-	lang := filepath.Base(os.Args[1])
-	image := fmt.Sprintf("sgtest/codeintel-%s", lang)
-	dockerfile := filepath.Join("dockerfiles", lang, "Dockerfile")
-	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
-		return errors.Errorf("%s could not be found. Ensure you are running from github.com/sourcegraph/lsp-adapter directory and that %s integration exists", dockerfile, lang)
-	}
-
-	cmd := exec.Command("docker", "build", "-t", image, "-f", dockerfile, ".")
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	log.Println("running ", strings.Join(cmd.Args, " "))
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
-	cmd = exec.Command("docker", "run", "--rm=true", "-p", "8080:8080", image)
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	log.Println("running ", strings.Join(cmd.Args, " "))
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	defer func() {
-		cmd.Process.Kill()
-		cmd.Wait()
-	}()
-
+func record() error {
 	lis, err := net.Listen("tcp", "127.0.0.1:8081")
 	if err != nil {
 		return err
@@ -130,6 +100,49 @@ func mainErr() error {
 		return err
 	}
 	return nil
+}
+
+func test() error {
+	return errors.Errorf("test is not implemented")
+}
+
+func mainErr() error {
+	if len(os.Args) != 3 || (os.Args[1] != "record" && os.Args[1] != "test") {
+		return errors.Errorf("USAGE: %s [record|test] language", os.Args[0])
+	}
+	action := os.Args[1]
+	lang := filepath.Base(os.Args[2])
+	image := fmt.Sprintf("sgtest/codeintel-%s", lang)
+	dockerfile := filepath.Join("dockerfiles", lang, "Dockerfile")
+	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
+		return errors.Errorf("%s could not be found. Ensure you are running from github.com/sourcegraph/lsp-adapter directory and that %s integration exists", dockerfile, lang)
+	}
+
+	cmd := exec.Command("docker", "build", "-t", image, "-f", dockerfile, ".")
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	log.Println(strings.Join(cmd.Args, " "))
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	cmd = exec.Command("docker", "run", "--rm=true", "-p", "8080:8080", image)
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	log.Println(strings.Join(cmd.Args, " "))
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	defer func() {
+		cmd.Process.Kill()
+		cmd.Wait()
+	}()
+
+	if action == "record" {
+		return record()
+	} else {
+		return test()
+	}
 }
 
 func main() {
