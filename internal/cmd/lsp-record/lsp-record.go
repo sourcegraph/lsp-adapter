@@ -2,44 +2,63 @@
 package main
 
 import (
+	"archive/zip"
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/sourcegraph/go-langserver/pkg/lsp"
 	"github.com/sourcegraph/jsonrpc2"
 )
+
+// Request is the subset of a JSONRPC2 request payload we want to record
+type Request struct {
+	Method string           `json:"method"`
+	Params *json.RawMessage `json:"params,omitempty"`
+}
+
+func encode(w io.Writer, v interface{}) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	if _, err := w.Write(b); err != nil {
+		return err
+	}
+	if _, err := w.Write([]byte{'\n'}); err != nil {
+		return err
+	}
+	return nil
+}
 
 func writeJSONRPC2Requests(r io.Reader, w io.Writer) error {
 	stream := bufio.NewReader(r)
 	codec := jsonrpc2.VSCodeObjectCodec{}
 
 	for {
-		var req struct {
-			Method string           `json:"method"`
-			Params *json.RawMessage `json:"params,omitempty"`
-		}
+		var req Request
 		if err := codec.ReadObject(stream, &req); err != nil {
 			return err
 		}
 		if req.Method != "" {
-			b, err := json.Marshal(req)
+			err := encode(w, req)
 			if err != nil {
-				return err
-			}
-			if _, err := w.Write(b); err != nil {
-				return err
-			}
-			if _, err := w.Write([]byte{'\n'}); err != nil {
 				return err
 			}
 		}
@@ -53,6 +72,123 @@ func retryDial(network, address string) (net.Conn, error) {
 		conn, err = net.DialTimeout(network, address, time.Second)
 	}
 	return conn, err
+}
+
+func massageGitHubArchive(r *zip.ReadCloser) {
+	// Strip out top-level dir so the root is the root of the repo
+	for i, file := range r.File {
+		r.File[i].Name = file.Name[strings.Index(file.Name, "/"):]
+	}
+}
+
+func openArchive(originalRootURI string) (*zip.ReadCloser, error) {
+	dst := filepath.Join(os.TempDir(), "lsp-record", url.QueryEscape(originalRootURI)+".zip")
+	if r, err := zip.OpenReader(dst); err == nil {
+		massageGitHubArchive(r)
+		return r, nil
+	} else if !os.IsNotExist(err) {
+		return nil, err
+	}
+
+	u, err := url.Parse(originalRootURI)
+	if err != nil {
+		return nil, err
+	}
+	if u.Host != "github.com" {
+		return nil, errors.Errorf("Unsupported originalRootUri %s (only github supported)", originalRootURI)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
+		return nil, err
+	}
+
+	repo := path.Join(u.Host, strings.TrimPrefix(u.Path, ".git"))
+	rev := u.RawQuery
+	url := fmt.Sprintf("https://codeload.%s/zip/%s", repo, rev)
+
+	log.Println("fetching", url)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	dstPart := dst + ".part"
+	fd, err := os.Create(dstPart)
+	if err != nil {
+		return nil, err
+	}
+	defer os.Remove(dstPart)
+
+	_, err = io.Copy(fd, resp.Body)
+	if err2 := fd.Close(); err2 != nil {
+		return nil, err2
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if err := os.Rename(dstPart, dst); err != nil {
+		return nil, err
+	}
+	r, err := zip.OpenReader(dst)
+	if err != nil {
+		return nil, err
+	}
+	massageGitHubArchive(r)
+	return r, nil
+}
+
+type jsonrpc2HandlerFunc func(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (result interface{}, err error)
+
+func newVFSHandler(ar *zip.ReadCloser) jsonrpc2HandlerFunc {
+	return func(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (interface{}, error) {
+		switch req.Method {
+		case "workspace/xfiles":
+			var results []lsp.TextDocumentIdentifier
+			for _, f := range ar.File {
+				results = append(results, lsp.TextDocumentIdentifier{URI: lsp.DocumentURI("file://" + f.Name)})
+			}
+			return results, nil
+		case "textDocument/xcontent":
+			var params struct {
+				TextDocument lsp.TextDocumentIdentifier `json:"textDocument"`
+			}
+			if err := json.Unmarshal(*req.Params, &params); err != nil {
+				return nil, err
+			}
+			u, err := url.Parse(string(params.TextDocument.URI))
+			if err != nil {
+				return nil, err
+			}
+			for _, f := range ar.File {
+				if f.Name == u.Path {
+					rc, err := f.Open()
+					if err != nil {
+						return nil, err
+					}
+					defer rc.Close()
+					b, err := ioutil.ReadAll(rc)
+					if err != nil {
+						return nil, err
+					}
+					return lsp.TextDocumentItem{
+						URI:  params.TextDocument.URI,
+						Text: string(b),
+					}, nil
+				}
+			}
+			msg := fmt.Sprintf("URI %s does not exist", params.TextDocument.URI)
+			log.Println(msg)
+			return nil, &jsonrpc2.Error{
+				Code:    jsonrpc2.CodeInvalidParams,
+				Message: msg,
+			}
+		}
+
+		log.Println("ignoring server->client request:", req.Method)
+		return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeMethodNotFound, Message: fmt.Sprintf("client handler: method not found: %q", req.Method)}
+	}
 }
 
 func record() error {
@@ -103,7 +239,67 @@ func record() error {
 }
 
 func test() error {
-	return errors.Errorf("test is not implemented")
+	var mu sync.Mutex
+	var vfsHandler jsonrpc2HandlerFunc
+	handle := func(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (interface{}, error) {
+		mu.Lock()
+		h := vfsHandler
+		mu.Unlock()
+		if h == nil {
+			return nil, errors.Errorf("archive has not been fetched")
+		}
+		return h(ctx, conn, req)
+	}
+
+	conn, err := retryDial("tcp", "127.0.0.1:8080")
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	c := jsonrpc2.NewConn(
+		context.Background(),
+		jsonrpc2.NewBufferedStream(conn, jsonrpc2.VSCodeObjectCodec{}),
+		jsonrpc2.AsyncHandler(jsonrpc2.HandlerWithError(handle)))
+	defer c.Close()
+
+	dec := json.NewDecoder(os.Stdin)
+	for {
+		var req Request
+		if err := dec.Decode(&req); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+
+		if req.Method == "initialize" {
+			var params struct {
+				OriginalRootURI string `json:"originalRootUri"`
+			}
+			if err := json.Unmarshal(*req.Params, &params); err != nil {
+				return err
+			}
+			reader, err := openArchive(params.OriginalRootURI)
+			if err != nil {
+				return err
+			}
+			defer reader.Close()
+			mu.Lock()
+			vfsHandler = newVFSHandler(reader)
+			mu.Unlock()
+		}
+
+		var res interface{}
+		if err := c.Call(context.Background(), req.Method, req.Params, &res); err != nil {
+			return err
+		}
+
+		if err := encode(os.Stdout, res); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func mainErr() error {
