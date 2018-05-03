@@ -44,11 +44,21 @@
   branch = "master"
   name = "github.com/sourcegraph/jsonrpc2"
   packages = ["."]
-  revision = "2ed59d3304d3c7a972e6f58064ab9cdad4cbfc2c"
+  revision = "a3d86c792f0f5a0c0c2c4ed9157125e914cb5534"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/net"
+  packages = [
+    "context",
+    "internal/timeseries",
+    "trace"
+  ]
+  revision = "5f9ae10d9af5b1c89ae6904293b14b064d4ada23"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c05a73c59af2c85e3bebe45fa91591b4f70972534f2cad96c5f0c19afe93b23c"
+  inputs-digest = "04ab57fb56ca2d12d8fef22373a3b2b97073f007e9fe4951f853608805ff6a6a"
   solver-name = "gps-cdcl"
   solver-version = 1

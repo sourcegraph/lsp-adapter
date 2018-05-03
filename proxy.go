@@ -26,6 +26,7 @@ import (
 
 var (
 	proxyAddr         = flag.String("proxyAddress", "127.0.0.1:8080", "proxy server listen address (tcp)")
+	pprofAddr         = flag.String("pprofAddr", "", "server listen address for pprof")
 	cacheDir          = flag.String("cacheDirectory", filepath.Join(os.TempDir(), "proxy-cache"), "cache directory location")
 	didOpenLanguage   = flag.String("didOpenLanguage", "", "(HACK) If non-empty, send 'textDocument/didOpen' notifications with the specified language field (e.x. 'python') to the language server for every file.")
 	jsonrpc2IDRewrite = flag.String("jsonrpc2IDRewrite", "none", "(HACK) Rewrite jsonrpc2 ID. none (default) is no rewriting. string will use a string ID. number will use number ID. Useful for language servers with non-spec complaint JSONRPC2 implementations.")
@@ -86,6 +87,10 @@ func main() {
 
 	log.Printf("CloneProxy: accepting connections at %s", lis.Addr())
 
+	if *pprofAddr != "" {
+		go debugServer(*pprofAddr)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	shutdown := func() {
@@ -133,10 +138,14 @@ func main() {
 				lastRequestID: newAtomicCounter(),
 				didOpen:       map[string]bool{},
 			}
+			sessionID := proxy.sessionID.String()
 
 			var serverConnOpts []jsonrpc2.ConnOpt
 			if *trace {
-				serverConnOpts = append(serverConnOpts, jsonrpc2.LogMessages(log.New(os.Stderr, fmt.Sprintf("TRACE %s ", proxy.sessionID.String()), log.Ltime)))
+				serverConnOpts = append(serverConnOpts, jsonrpc2.LogMessages(log.New(os.Stderr, fmt.Sprintf("TRACE %s ", sessionID), log.Ltime)))
+			}
+			if *pprofAddr != "" {
+				serverConnOpts = append(serverConnOpts, traceRequests(sessionID), traceEventLog("server", sessionID))
 			}
 			proxy.client = jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(clientNetConn, jsonrpc2.VSCodeObjectCodec{}), jsonrpc2.AsyncHandler(jsonrpc2HandlerFunc(proxy.handleClientRequest)))
 			proxy.server = jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(lsConn, jsonrpc2.VSCodeObjectCodec{}), jsonrpc2.AsyncHandler(jsonrpc2HandlerFunc(proxy.handleServerRequest)), serverConnOpts...)
