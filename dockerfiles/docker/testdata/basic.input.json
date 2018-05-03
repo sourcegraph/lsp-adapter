@@ -1,0 +1,10 @@
+{"method":"initialize","params":{"rootPath":"/","rootUri":"file:///","capabilities":{"workspace":{},"textDocument":{"completion":{"completionItemKind":{},"completionItem":{}}},"xfilesProvider":true,"xcontentProvider":true,"xcacheProvider":true},"originalRootUri":"git://github.com/rcjsuen/dockerfile-language-server-nodejs?3083f51108b5e5ddfd440e6fe3da415d10b9c69c","mode":"dockerfile"}}
+{"method":"textDocument/hover","params":{"position":{"character":0,"line":0},"textDocument":{"uri":"file:///Dockerfile"}}}
+{"method":"textDocument/hover","params":{"position":{"character":0,"line":0},"textDocument":{"uri":"file:///Dockerfile"}}}
+{"method":"textDocument/hover","params":{"position":{"character":0,"line":1},"textDocument":{"uri":"file:///Dockerfile"}}}
+{"method":"textDocument/hover","params":{"position":{"character":0,"line":2},"textDocument":{"uri":"file:///Dockerfile"}}}
+{"method":"textDocument/hover","params":{"position":{"character":0,"line":3},"textDocument":{"uri":"file:///Dockerfile"}}}
+{"method":"textDocument/hover","params":{"position":{"character":0,"line":4},"textDocument":{"uri":"file:///Dockerfile"}}}
+{"method":"textDocument/hover","params":{"position":{"character":0,"line":5},"textDocument":{"uri":"file:///Dockerfile"}}}
+{"method":"textDocument/hover","params":{"position":{"character":0,"line":6},"textDocument":{"uri":"file:///Dockerfile"}}}
+{"method":"textDocument/hover","params":{"position":{"character":0,"line":7},"textDocument":{"uri":"file:///Dockerfile"}}}
