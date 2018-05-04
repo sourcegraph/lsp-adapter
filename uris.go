@@ -16,7 +16,7 @@ import (
 )
 
 func (p *cloneProxy) cloneWorkspaceToCache(globs []string) error {
-	fs := &remoteFS{conn: p.client}
+	fs := &remoteFS{conn: p.client, traceID: p.sessionID.String()}
 	err := fs.Clone(p.ctx, p.workspaceCacheDir(), globs)
 	if err != nil {
 		return errors.Wrap(err, "failed to clone workspace to local cache")
