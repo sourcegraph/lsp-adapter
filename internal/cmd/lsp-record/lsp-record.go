@@ -1,4 +1,6 @@
-// Command lsp-record provides an lsp proxy which records the session. It is intended
+// Command lsp-record is a utility to record and replay LSP requests. It is
+// opinionated and targets the Sourcegraph + dockerfile use case. See the
+// usage string for more information.
 package main
 
 import (
@@ -6,6 +8,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -26,6 +29,49 @@ import (
 	"github.com/sourcegraph/go-langserver/pkg/lsp"
 	"github.com/sourcegraph/jsonrpc2"
 )
+
+func usage() {
+	fmt.Fprintf(flag.CommandLine.Output(), `USAGE lsp-record record|test language
+
+'lsp-record record language' starts a proxy on port 8081 to a docker container
+for dockerfiles/language. It writes a subset of JSONRPC2 requests it receives
+to stdout. The output is intended to be used by 'lsp-record test'.
+
+'lsp-record test language' reads JSONRPC2 requests produced by 'lsp-record
+record language' over stdin. It will send the requests to a docker container
+for dockerfiles/language and output the response to stdout. Additionally, the
+originalRootUri field in the initialize request is used to provide the file
+over xcontent and xfiles requests. Note: originalRootUri field and x* requests
+are Sourcegraph extensions.
+
+The docker containers used by lsp-record are always built and started up. This
+is usually fast due to dockers caching, and makes it convenient to tweak the
+Dockerfile as we try to introduce a new language. The image name is
+'sgtest/codeintel-language' to avoid conflicting with the images we publish
+under the sourcegraph dockerhub org.
+
+lsp-record is not a pure JSONRPC2 transport recorder/replay utility. Instead
+it is targetted to the Sourcegraph use case of testing Dockerfile we have for
+languages. This allows the UI for the tool to be very minimal and simple for
+the mentioned use case.
+
+You need to configure Sourcegraph to use the proxy 'lsp-record record'
+starts. For example use
+
+  "langservers": [
+    {
+      "address": "tcp://localhost:8081",
+      "language": "rust"
+    }
+  ]
+
+To record requests to the rust language server started with
+
+   lsp-record record rust
+
+`)
+	flag.PrintDefaults()
+}
 
 // Request is the subset of a JSONRPC2 request payload we want to record
 type Request struct {
@@ -314,11 +360,15 @@ func test() error {
 }
 
 func mainErr() error {
-	if len(os.Args) != 3 || (os.Args[1] != "record" && os.Args[1] != "test") {
-		return errors.Errorf("USAGE: %s [record|test] language", os.Args[0])
+	flag.Usage = usage
+	flag.Parse()
+	args := flag.Args()
+	if len(args) != 2 || (args[0] != "record" && args[0] != "test") {
+		flag.Usage()
+		os.Exit(2)
 	}
-	action := os.Args[1]
-	lang := filepath.Base(os.Args[2])
+	action := args[0]
+	lang := args[1]
 	image := fmt.Sprintf("sgtest/codeintel-%s", lang)
 	dockerfile := filepath.Join("dockerfiles", lang, "Dockerfile")
 	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
