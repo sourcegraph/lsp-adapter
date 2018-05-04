@@ -33,23 +33,30 @@ type Request struct {
 	Params *json.RawMessage `json:"params,omitempty"`
 }
 
-func encode(w io.Writer, v interface{}) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
+// Encoder wraps an io.Writer, but additionally provides Encode.
+type Encoder struct {
+	io.Writer
+	enc *json.Encoder
+}
+
+// Encode writes the JSON encoding of v to the stream.
+func (e *Encoder) Encode(v interface{}) error {
+	if e.enc == nil {
+		e.enc = json.NewEncoder(e.Writer)
+		e.enc.SetIndent("", "  ")
+	} else {
+		if _, err := e.Writer.Write([]byte{'\n'}); err != nil {
+			return err
+		}
 	}
-	if _, err := w.Write(b); err != nil {
-		return err
-	}
-	if _, err := w.Write([]byte{'\n'}); err != nil {
-		return err
-	}
-	return nil
+
+	return e.enc.Encode(v)
 }
 
 func writeJSONRPC2Requests(r io.Reader, w io.Writer) error {
 	stream := bufio.NewReader(r)
 	codec := jsonrpc2.VSCodeObjectCodec{}
+	enc := &Encoder{Writer: w}
 
 	for {
 		var req Request
@@ -57,8 +64,7 @@ func writeJSONRPC2Requests(r io.Reader, w io.Writer) error {
 			return err
 		}
 		if req.Method != "" {
-			err := encode(w, req)
-			if err != nil {
+			if err := enc.Encode(req); err != nil {
 				return err
 			}
 		}
@@ -264,6 +270,7 @@ func test() error {
 	defer c.Close()
 
 	dec := json.NewDecoder(os.Stdin)
+	enc := &Encoder{Writer: os.Stdout}
 	for {
 		var req Request
 		if err := dec.Decode(&req); err == io.EOF {
@@ -294,7 +301,7 @@ func test() error {
 			return err
 		}
 
-		if err := encode(os.Stdout, res); err != nil {
+		if err := enc.Encode(res); err != nil {
 			return err
 		}
 	}
