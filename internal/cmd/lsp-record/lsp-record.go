@@ -99,6 +99,8 @@ func (e *Encoder) Encode(v interface{}) error {
 	return e.enc.Encode(v)
 }
 
+// writeJSONRPC2Requests writes to w a all JSONRPC2 requests on r. See the
+// Request struct for which JSONRPC2 request fields are encoded.
 func writeJSONRPC2Requests(r io.Reader, w io.Writer) error {
 	stream := bufio.NewReader(r)
 	codec := jsonrpc2.VSCodeObjectCodec{}
@@ -137,7 +139,11 @@ func massageGitHubArchive(r *zip.ReadCloser) {
 	}
 }
 
+// fetchArchiveForRootURI will fetch the git:// URI provided by sourcegraph as
+// originalRootUri in the initialize request. It only supports github and uses
+// an on-disk cache.
 func fetchArchiveForRootURI(originalRootURI string) (*zip.ReadCloser, error) {
+	// Avoid fetch if we have it cached
 	dst := filepath.Join(os.TempDir(), "lsp-record", url.QueryEscape(originalRootURI)+".zip")
 	if r, err := zip.OpenReader(dst); err == nil {
 		massageGitHubArchive(r)
@@ -146,6 +152,8 @@ func fetchArchiveForRootURI(originalRootURI string) (*zip.ReadCloser, error) {
 		return nil, err
 	}
 
+	// The format is "CLONEURL?REV#PATH". For example
+	// git://github.com/golang/go?0dc31fb#src/net/http/server.go
 	u, err := url.Parse(originalRootURI)
 	if err != nil {
 		return nil, err
@@ -169,6 +177,8 @@ func fetchArchiveForRootURI(originalRootURI string) (*zip.ReadCloser, error) {
 	}
 	defer resp.Body.Close()
 
+	// Write to a temporary file to prevent interrupted downloads poisoning
+	// the cache.
 	dstPart := dst + ".part"
 	fd, err := os.Create(dstPart)
 	if err != nil {
@@ -184,6 +194,7 @@ func fetchArchiveForRootURI(originalRootURI string) (*zip.ReadCloser, error) {
 		return nil, err
 	}
 
+	// Success. Move into the expected place for future requests to find.
 	if err := os.Rename(dstPart, dst); err != nil {
 		return nil, err
 	}
@@ -197,6 +208,8 @@ func fetchArchiveForRootURI(originalRootURI string) (*zip.ReadCloser, error) {
 
 type jsonrpc2HandlerFunc func(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (result interface{}, err error)
 
+// newVFSHandler provides workspace/xfiles and textDocument/xcontent for the
+// zip archive ar.
 func newVFSHandler(ar *zip.ReadCloser) jsonrpc2HandlerFunc {
 	return func(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (interface{}, error) {
 		switch req.Method {
@@ -217,6 +230,7 @@ func newVFSHandler(ar *zip.ReadCloser) jsonrpc2HandlerFunc {
 			if err != nil {
 				return nil, err
 			}
+			// Simple O(n) lookup of u.Path
 			for _, f := range ar.File {
 				if f.Name == u.Path {
 					rc, err := f.Open()
@@ -248,6 +262,7 @@ func newVFSHandler(ar *zip.ReadCloser) jsonrpc2HandlerFunc {
 }
 
 func record() error {
+	// Proxy port we listen on.
 	lis, err := net.Listen("tcp", "127.0.0.1:8081")
 	if err != nil {
 		return err
@@ -260,12 +275,18 @@ func record() error {
 	}
 	defer src.Close()
 
+	// We have a connection to proxy, lets connect to the docker container to
+	// proxy it.
 	dst, err := retryDial("tcp", "127.0.0.1:8080")
 	if err != nil {
 		return err
 	}
 	defer dst.Close()
 
+	// We have 3 goroutines per connection: OS signal listener, src -> dst
+	// copy and dst -> src copy. We record requests on src -> dst. If any
+	// stop, we stop all. done is used to communicate that. Buffered to avoid
+	// blocking (only read once).
 	done := make(chan error, 3)
 	go func() {
 		shutdown := make(chan os.Signal, 1)
@@ -274,7 +295,9 @@ func record() error {
 		done <- nil
 	}()
 	go func() {
-		// src -> dst
+		// src -> tee -> dst
+		//          |
+		//          * -> requestFilter -> os.Stdout
 		pr, pw := io.Pipe()
 		go writeJSONRPC2Requests(pr, os.Stdout)
 		_, err := io.Copy(dst, io.TeeReader(src, pw))
@@ -295,6 +318,8 @@ func record() error {
 }
 
 func test() error {
+	// We set vfsHandler once we have read the initialize request. Protected a
+	// concurrent read in handle with mu.
 	var mu sync.Mutex
 	var vfsHandler jsonrpc2HandlerFunc
 	handle := func(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) (interface{}, error) {
@@ -307,20 +332,25 @@ func test() error {
 		return h(ctx, conn, req)
 	}
 
+	// Connect to our docker container
 	conn, err := retryDial("tcp", "127.0.0.1:8080")
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
+	// Start a jsonrpc2 session. We use c to send requests to the Language
+	// Server, and set a handler to respond to VFS requests from the Language
+	// Server.
 	c := jsonrpc2.NewConn(
 		context.Background(),
 		jsonrpc2.NewBufferedStream(conn, jsonrpc2.VSCodeObjectCodec{}),
 		jsonrpc2.AsyncHandler(jsonrpc2.HandlerWithError(handle)))
 	defer c.Close()
 
-	dec := json.NewDecoder(os.Stdin)
-	enc := &Encoder{Writer: os.Stdout}
+	// Both our input and output are a stream of JSON objects.
+	dec := json.NewDecoder(os.Stdin)   // Read requests to send
+	enc := &Encoder{Writer: os.Stdout} // Write responses received
 	for {
 		var req Request
 		if err := dec.Decode(&req); err == io.EOF {
@@ -329,6 +359,8 @@ func test() error {
 			return err
 		}
 
+		// Setup handle to respond to VFS requests for originalRootUri in
+		// initailize request.
 		if req.Method == "initialize" {
 			var params struct {
 				OriginalRootURI string `json:"originalRootUri"`
@@ -375,6 +407,7 @@ func mainErr() error {
 		return errors.Errorf("%s could not be found. Ensure you are running from github.com/sourcegraph/lsp-adapter directory and that %s integration exists", dockerfile, lang)
 	}
 
+	// docker build -t sgtest/codeintel-language -f dockerfiles/language/Dockerfile .
 	cmd := exec.Command("docker", "build", "-t", image, "-f", dockerfile, ".")
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
@@ -383,6 +416,7 @@ func mainErr() error {
 		return err
 	}
 
+	// docker run --rm=true -p 8080:8080 sgtest/codeintel-language
 	cmd = exec.Command("docker", "run", "--rm=true", "-p", "8080:8080", image)
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
