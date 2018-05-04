@@ -80,8 +80,12 @@ func retryDial(network, address string) (net.Conn, error) {
 	return conn, err
 }
 
+// massageGitHubArchive rewrites filenames to match what we expect. GitHub
+// archives always have a top-level dir, so strip it out.
+//
+// before: dockerfile-language-server-nodejs-3083f51108b5e5ddfd440e6fe3da415d10b9c69c/src/server.ts
+// after:  /src/server.ts
 func massageGitHubArchive(r *zip.ReadCloser) {
-	// Strip out top-level dir so the root is the root of the repo
 	for i, file := range r.File {
 		r.File[i].Name = file.Name[strings.Index(file.Name, "/"):]
 	}
