@@ -222,9 +222,9 @@ func record() error {
 
 	done := make(chan error, 3)
 	go func() {
-		stop := make(chan os.Signal, 1)
-		signal.Notify(stop, os.Interrupt, os.Kill)
-		<-stop
+		shutdown := make(chan os.Signal, 1)
+		signal.Notify(shutdown, os.Interrupt, os.Kill)
+		<-shutdown
 		done <- nil
 	}()
 	go func() {
