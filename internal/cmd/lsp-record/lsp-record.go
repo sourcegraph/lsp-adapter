@@ -91,7 +91,7 @@ func massageGitHubArchive(r *zip.ReadCloser) {
 	}
 }
 
-func openArchive(originalRootURI string) (*zip.ReadCloser, error) {
+func fetchArchiveForRootURI(originalRootURI string) (*zip.ReadCloser, error) {
 	dst := filepath.Join(os.TempDir(), "lsp-record", url.QueryEscape(originalRootURI)+".zip")
 	if r, err := zip.OpenReader(dst); err == nil {
 		massageGitHubArchive(r)
@@ -290,7 +290,7 @@ func test() error {
 			if err := json.Unmarshal(*req.Params, &params); err != nil {
 				return err
 			}
-			reader, err := openArchive(params.OriginalRootURI)
+			reader, err := fetchArchiveForRootURI(params.OriginalRootURI)
 			if err != nil {
 				return err
 			}
