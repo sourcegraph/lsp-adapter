@@ -138,14 +138,14 @@ func main() {
 				lastRequestID: newAtomicCounter(),
 				didOpen:       map[string]bool{},
 			}
-			sessionID := proxy.sessionID.String()
+			traceID := proxy.sessionID.String()
 
 			var serverConnOpts []jsonrpc2.ConnOpt
 			if *trace {
-				serverConnOpts = append(serverConnOpts, jsonrpc2.LogMessages(log.New(os.Stderr, fmt.Sprintf("TRACE %s ", sessionID), log.Ltime)))
+				serverConnOpts = append(serverConnOpts, jsonrpc2.LogMessages(log.New(os.Stderr, fmt.Sprintf("TRACE %s ", traceID), log.Ltime)))
 			}
 			if *pprofAddr != "" {
-				serverConnOpts = append(serverConnOpts, traceRequests(sessionID), traceEventLog("server", sessionID))
+				serverConnOpts = append(serverConnOpts, traceRequests(traceID), traceEventLog("server", traceID))
 			}
 			proxy.client = jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(clientNetConn, jsonrpc2.VSCodeObjectCodec{}), jsonrpc2.AsyncHandler(jsonrpc2HandlerFunc(proxy.handleClientRequest)))
 			proxy.server = jsonrpc2.NewConn(ctx, jsonrpc2.NewBufferedStream(lsConn, jsonrpc2.VSCodeObjectCodec{}), jsonrpc2.AsyncHandler(jsonrpc2HandlerFunc(proxy.handleServerRequest)), serverConnOpts...)

@@ -14,10 +14,12 @@ import (
 	"github.com/sourcegraph/go-langserver/pkg/lsp"
 	"github.com/sourcegraph/go-langserver/pkg/lspext"
 	"github.com/sourcegraph/jsonrpc2"
+	nettrace "golang.org/x/net/trace"
 )
 
 type remoteFS struct {
-	conn *jsonrpc2.Conn
+	conn    *jsonrpc2.Conn
+	traceID string
 }
 
 // BatchOpen opens all of the content for the specified paths.
@@ -88,7 +90,18 @@ func (fs *remoteFS) Walk(ctx context.Context) ([]lsp.DocumentURI, error) {
 	return fileURIs, nil
 }
 
-func (fs *remoteFS) Clone(ctx context.Context, baseDir string, globs []string) error {
+func (fs *remoteFS) Clone(ctx context.Context, baseDir string, globs []string) (err error) {
+	tr := nettrace.New("clone", fs.traceID)
+	defer func() {
+		if err != nil {
+			tr.LazyPrintf("error: %v", err)
+			tr.SetError()
+		}
+		tr.Finish()
+	}()
+
+	tr.LazyPrintf("starting clone baseDir: %s, globs: %v", baseDir, globs)
+
 	if err := os.MkdirAll(baseDir, os.ModePerm); err != nil {
 		return err
 	}
@@ -141,5 +154,6 @@ func (fs *remoteFS) Clone(ctx context.Context, baseDir string, globs []string) e
 			return errors.Wrapf(err, "failed to write file content for %s", newFilePath)
 		}
 	}
+	tr.LazyPrintf("cloned %d files", len(files))
 	return nil
 }
