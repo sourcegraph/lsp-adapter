@@ -1,0 +1,74 @@
+{
+  "capabilities": {
+    "codeActionProvider": false,
+    "completionProvider": {
+      "resolveProvider": true,
+      "triggerCharacters": [
+        "=",
+        " ",
+        "$",
+        "-"
+      ]
+    },
+    "definitionProvider": true,
+    "documentFormattingProvider": true,
+    "documentHighlightProvider": true,
+    "documentLinkProvider": {
+      "resolveProvider": false
+    },
+    "documentOnTypeFormattingProvider": {
+      "firstTriggerCharacter": "\\",
+      "moreTriggerCharacter": [
+        "`"
+      ]
+    },
+    "documentRangeFormattingProvider": true,
+    "documentSymbolProvider": true,
+    "hoverProvider": true,
+    "renameProvider": true,
+    "signatureHelpProvider": {
+      "triggerCharacters": [
+        "-",
+        "[",
+        ",",
+        " ",
+        "="
+      ]
+    },
+    "textDocumentSync": 2
+  }
+}
+
+{
+  "contents": "Set the `baseImage` to use for subsequent instructions. `FROM` must be the first instruction in a `Dockerfile`.\n\n```\nFROM baseImage\nFROM baseImage:tag\nFROM baseImage@digest\n```\n\n[Online documentation](https://docs.docker.com/engine/reference/builder/#from)"
+}
+
+{
+  "contents": "Set the `baseImage` to use for subsequent instructions. `FROM` must be the first instruction in a `Dockerfile`.\n\n```\nFROM baseImage\nFROM baseImage:tag\nFROM baseImage@digest\n```\n\n[Online documentation](https://docs.docker.com/engine/reference/builder/#from)"
+}
+
+{
+  "contents": "Copy files or folders from `source` to the `dest` path in the image's filesystem.\n\n```\nCOPY hello.txt /absolute/path\nCOPY hello.txt relative/to/workdir\n```\n\n[Online documentation](https://docs.docker.com/engine/reference/builder/#copy)"
+}
+
+{
+  "contents": "Copy files or folders from `source` to the `dest` path in the image's filesystem.\n\n```\nCOPY hello.txt /absolute/path\nCOPY hello.txt relative/to/workdir\n```\n\n[Online documentation](https://docs.docker.com/engine/reference/builder/#copy)"
+}
+
+{
+  "contents": "Copy files or folders from `source` to the `dest` path in the image's filesystem.\n\n```\nCOPY hello.txt /absolute/path\nCOPY hello.txt relative/to/workdir\n```\n\n[Online documentation](https://docs.docker.com/engine/reference/builder/#copy)"
+}
+
+{
+  "contents": "Set the working directory for any subsequent `ADD`, `COPY`, `CMD`, `ENTRYPOINT`, or `RUN` instructions that follow it in the `Dockerfile`.\n\n```\nWORKDIR /path/to/workdir\nWORKDIR relative/path\n```\n\n[Online documentation](https://docs.docker.com/engine/reference/builder/#workdir)"
+}
+
+{
+  "contents": "Execute any commands on top of the current image as a new layer and commit the results.\n\n```\nRUN apt-get update \u0026\u0026 apt-get install -y curl\n```\n\n\n[Online documentation](https://docs.docker.com/engine/reference/builder/#run)"
+}
+
+null
+
+{
+  "contents": "Configures the container to be run as an executable.\n\n```\nENTRYPOINT [ \"/opt/app/run.sh\", \"--port\", \"8080\" ]\n```\n\n[Online documentation](https://docs.docker.com/engine/reference/builder/#entrypoint)"
+}

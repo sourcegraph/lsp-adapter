@@ -1,4 +1,5 @@
 .git/
 dockerfiles/
+internal/
 
 !dockerfiles/ruby/solargraph-wrapper.go
