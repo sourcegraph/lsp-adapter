@@ -1,0 +1,554 @@
+{
+  "method": "initialize",
+  "params": {
+    "rootPath": "/",
+    "rootUri": "file:///",
+    "capabilities": {
+      "workspace": {},
+      "textDocument": {
+        "completion": {
+          "completionItemKind": {},
+          "completionItem": {}
+        }
+      },
+      "xfilesProvider": true,
+      "xcontentProvider": true,
+      "xcacheProvider": true
+    },
+    "originalRootUri": "git://github.com/creationix/nvm?113d807e5a57b7aa49827a3573a55e47d3a72763",
+    "mode": "bash"
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 0,
+      "line": 0
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 1,
+      "line": 8
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 24,
+      "line": 8
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 0,
+      "line": 12
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 10,
+      "line": 15
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 2,
+      "line": 15
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 35,
+      "line": 15
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 31,
+      "line": 15
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 28,
+      "line": 15
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 25,
+      "line": 15
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 24,
+      "line": 15
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 23,
+      "line": 15
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 14,
+      "line": 97
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 13,
+      "line": 94
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 20,
+      "line": 94
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 13,
+      "line": 93
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 4,
+      "line": 94
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 4,
+      "line": 95
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 10,
+      "line": 95
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 11,
+      "line": 95
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 0,
+      "line": 104
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 6,
+      "line": 104
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 6,
+      "line": 107
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 9,
+      "line": 109
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 11,
+      "line": 109
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 4,
+      "line": 105
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 0,
+      "line": 106
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 7,
+      "line": 107
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 4,
+      "line": 106
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 4,
+      "line": 106
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 0,
+      "line": 111
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 0,
+      "line": 110
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 4,
+      "line": 109
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 4,
+      "line": 106
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 6,
+      "line": 103
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 7,
+      "line": 103
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 8,
+      "line": 101
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 0,
+      "line": 100
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 5,
+      "line": 118
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 9,
+      "line": 119
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}
+
+{
+  "method": "textDocument/hover",
+  "params": {
+    "position": {
+      "character": 9,
+      "line": 119
+    },
+    "textDocument": {
+      "uri": "file:///nvm.sh"
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "capabilities": {
+    "completionProvider": {
+      "resolveProvider": true
+    },
+    "definitionProvider": true,
+    "documentHighlightProvider": true,
+    "documentSymbolProvider": true,
+    "hoverProvider": true,
+    "referencesProvider": true,
+    "textDocumentSync": 1
+  }
+}
+
+null
+
+null
+
+null
+
+null
+
+{
+  "contents": {
+    "language": "plaintext",
+    "value": "printf: printf [-v var] format [arguments]\n    Formats and prints ARGUMENTS under control of the FORMAT.\n    \n    Options:\n      -v var\tassign the output to shell variable VAR rather than\n    \t\tdisplay it on the standard output\n    \n    FORMAT is a character string which contains three types of objects: plain\n    characters, which are simply copied to standard output; character escape\n    sequences, which are converted and copied to the standard output; and\n    format specifications, each of which causes printing of the next successive\n    argument.\n    \n    In addition to the standard format specifications described in printf(1),\n    printf interprets:\n    \n      %b\texpand backslash escape sequences in the corresponding argument\n      %q\tquote the argument in a way that can be reused as shell input\n      %(fmt)T output the date-time string resulting from using FMT as a format\n            string for strftime(3)\n    \n    The format is re-used as necessary to consume all of the arguments.  If\n    there are fewer arguments than the format requires,  extra format\n    specifications behave as if a zero value or null string, as appropriate,\n    had been supplied.\n    \n    Exit Status:\n    Returns success unless an invalid option is given or a write or assignment\n    error occurs.\n"
+  }
+}
+
+{
+  "contents": {
+    "language": "plaintext",
+    "value": "command: command [-pVv] command [arg ...]\n    Execute a simple command or display information about commands.\n    \n    Runs COMMAND with ARGS suppressing  shell function lookup, or display\n    information about the specified COMMANDs.  Can be used to invoke commands\n    on disk when a function with the same name exists.\n    \n    Options:\n      -p\tuse a default value for PATH that is guaranteed to find all of\n    \tthe standard utilities\n      -v\tprint a description of COMMAND similar to the `type' builtin\n      -V\tprint a more verbose description of each COMMAND\n    \n    Exit Status:\n    Returns exit status of COMMAND, or failure if COMMAND is not found.\n"
+  }
+}
+
+null
+
+null
+
+null
+
+null
+
+null
+
+null
+
+null
+
+null
+
+null
+
+null
+
+null
+
+{
+  "contents": {
+    "language": "plaintext",
+    "value": "return: return [n]\n    Return from a shell function.\n    \n    Causes a function or sourced script to exit with the return value\n    specified by N.  If N is omitted, the return status is that of the\n    last command executed within the function or script.\n    \n    Exit Status:\n    Returns N, or failure if the shell is not executing a function or script.\n"
+  }
+}
+
+null
+
+null
+
+null
+
+null
+
+null
+
+null
+
+null
+
+null
+
+null
+
+null
