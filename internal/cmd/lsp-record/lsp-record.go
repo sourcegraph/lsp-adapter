@@ -318,6 +318,16 @@ func record() error {
 }
 
 func test() error {
+	// Clean up on ctrl-c
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		shutdown := make(chan os.Signal, 1)
+		signal.Notify(shutdown, os.Interrupt, os.Kill)
+		<-shutdown
+		cancel()
+	}()
+
 	// We set vfsHandler once we have read the initialize request. Protected a
 	// concurrent read in handle with mu.
 	var mu sync.Mutex
@@ -343,7 +353,7 @@ func test() error {
 	// Server, and set a handler to respond to VFS requests from the Language
 	// Server.
 	c := jsonrpc2.NewConn(
-		context.Background(),
+		ctx,
 		jsonrpc2.NewBufferedStream(conn, jsonrpc2.VSCodeObjectCodec{}),
 		jsonrpc2.AsyncHandler(jsonrpc2.HandlerWithError(handle)))
 	defer c.Close()
@@ -379,7 +389,7 @@ func test() error {
 		}
 
 		var res interface{}
-		if err := c.Call(context.Background(), req.Method, req.Params, &res); err != nil {
+		if err := c.Call(ctx, req.Method, req.Params, &res); err != nil {
 			return err
 		}
 
