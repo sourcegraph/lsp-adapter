@@ -94,6 +94,7 @@ func (fs *remoteFS) Clone(ctx context.Context, baseDir string, globs []string) (
 	tr := nettrace.New("clone", fs.traceID)
 	defer func() {
 		if err != nil {
+			tr.LazyPrintf("error: %v", err)
 			tr.SetError()
 		}
 		tr.Finish()
