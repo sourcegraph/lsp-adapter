@@ -57,6 +57,8 @@ jobs:
       env: LANGUAGE=bash
     - <<: *release_job
       env: LANGUAGE=docker
+    - <<: *release_job
+      env: LANGUAGE=ocaml
 
 branches:
   only:
