@@ -31,18 +31,22 @@ import (
 )
 
 func usage() {
-	fmt.Fprintf(flag.CommandLine.Output(), `USAGE lsp-record record|test language
+	fmt.Fprintf(flag.CommandLine.Output(), `USAGE lsp-record record|test language [testcase]
 
 'lsp-record record language' starts a proxy on port 8081 to a docker container
 for dockerfiles/language. It writes a subset of JSONRPC2 requests it receives
-to stdout. The output is intended to be used by 'lsp-record test'.
+to the testcase. The output is intended to be used by 'lsp-record test'.
 
-'lsp-record test language' reads JSONRPC2 requests produced by 'lsp-record
-record language' over stdin. It will send the requests to a docker container
-for dockerfiles/language and output the response to stdout. Additionally, the
+'lsp-record test language' reads in JSONRPC2 requests produced by 'lsp-record
+record language' for testcase. It will send the requests to a docker container
+for dockerfiles/language and write out the responses. Additionally, the
 originalRootUri field in the initialize request is used to provide the file
 over xcontent and xfiles requests. Note: originalRootUri field and x* requests
 are Sourcegraph extensions.
+
+If the optional 'testcase' argument is specified then input and output is read
+from 'dockerfiles/language/testdata/testcase.*.json'. If not specified, then
+stdin and stdout is used.
 
 The docker containers used by lsp-record are always built and started up. This
 is usually fast due to dockers caching, and makes it convenient to tweak the
@@ -261,7 +265,7 @@ func newVFSHandler(ar *zip.ReadCloser) jsonrpc2HandlerFunc {
 	}
 }
 
-func record() error {
+func record(out io.Writer) error {
 	// Proxy port we listen on.
 	lis, err := net.Listen("tcp", "127.0.0.1:8081")
 	if err != nil {
@@ -297,9 +301,9 @@ func record() error {
 	go func() {
 		// src -> tee -> dst
 		//          |
-		//          * -> requestFilter -> os.Stdout
+		//          * -> requestFilter -> out
 		pr, pw := io.Pipe()
-		go writeJSONRPC2Requests(pr, os.Stdout)
+		go writeJSONRPC2Requests(pr, out)
 		_, err := io.Copy(dst, io.TeeReader(src, pw))
 		pw.CloseWithError(err)
 		done <- err
@@ -317,7 +321,7 @@ func record() error {
 	return nil
 }
 
-func test() error {
+func test(input io.Reader, output io.Writer) error {
 	// Clean up on ctrl-c
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -359,8 +363,8 @@ func test() error {
 	defer c.Close()
 
 	// Both our input and output are a stream of JSON objects.
-	dec := json.NewDecoder(os.Stdin)   // Read requests to send
-	enc := &Encoder{Writer: os.Stdout} // Write responses received
+	dec := json.NewDecoder(input)   // Read requests to send
+	enc := &Encoder{Writer: output} // Write responses received
 	for {
 		var req Request
 		if err := dec.Decode(&req); err == io.EOF {
@@ -401,20 +405,47 @@ func test() error {
 	return nil
 }
 
+func exists(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	} else if err != nil {
+		log.Fatalf("unexpected error testing existance of %s: %s", path, err)
+	}
+	return true
+}
+
+func fileCreateNotExist(path string) (*os.File, error) {
+	if exists(path) {
+		return nil, errors.Errorf("%s already exists", path)
+	}
+	return os.Create(path)
+}
+
 func mainErr() error {
 	flag.Usage = usage
 	flag.Parse()
 	args := flag.Args()
-	if len(args) != 2 || (args[0] != "record" && args[0] != "test") {
+	if (len(args) != 2 && len(args) != 3) || (args[0] != "record" && args[0] != "test") {
 		flag.Usage()
 		os.Exit(2)
 	}
 	action := args[0]
 	lang := args[1]
+	testcase := "-"
+	if len(args) == 3 {
+		testcase = args[2]
+	}
+
 	image := fmt.Sprintf("sgtest/codeintel-%s", lang)
+	testdataDir := filepath.Join("dockerfiles", lang, "testdata")
 	dockerfile := filepath.Join("dockerfiles", lang, "Dockerfile")
-	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
+	if !exists(dockerfile) {
 		return errors.Errorf("%s could not be found. Ensure you are running from github.com/sourcegraph/lsp-adapter directory and that %s integration exists", dockerfile, lang)
+	}
+	if testcase != "-" && !exists(testdataDir) {
+		if err := os.MkdirAll(testdataDir, os.ModePerm); err != nil {
+			return err
+		}
 	}
 
 	// docker build -t sgtest/codeintel-language -f dockerfiles/language/Dockerfile .
@@ -440,10 +471,32 @@ func mainErr() error {
 	}()
 
 	if action == "record" {
-		return record()
-	} else {
-		return test()
+		if testcase == "-" {
+			return record(os.Stdout)
+		}
+		fd, err := fileCreateNotExist(filepath.Join(testdataDir, testcase+".input.json"))
+		if err != nil {
+			return err
+		}
+		defer fd.Close()
+		return record(io.MultiWriter(fd, os.Stdout))
 	}
+
+	// test
+	if testcase == "-" {
+		return test(os.Stdin, os.Stdout)
+	}
+	input, err := os.Open(filepath.Join(testdataDir, testcase+".input.json"))
+	if err != nil {
+		return err
+	}
+	defer input.Close()
+	output, err := os.Create(filepath.Join(testdataDir, testcase+".golden.json"))
+	if err != nil {
+		return err
+	}
+	defer output.Close()
+	return test(input, io.MultiWriter(output, os.Stdout))
 }
 
 func main() {
