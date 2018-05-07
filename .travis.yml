@@ -24,7 +24,7 @@ jobs:
         - test -z $(gofmt -s -d $GO_FILES)
         - go test -v ./...
     - stage: release
-      if: tag IS present AND branch = master AND type = push AND fork = false
+      if: tag =~ ^v AND fork = false
       install:
         - go get -v github.com/mitchellh/gox
       script:
