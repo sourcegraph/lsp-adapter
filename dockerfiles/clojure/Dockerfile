@@ -4,7 +4,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-adapter
 
 FROM clojure:lein-2.8.1-alpine
-RUN apk add --no-cache ca-certificates git
+RUN apk add --no-cache ca-certificates git tini
 
 RUN git clone https://github.com/snoe/clojure-lsp.git
 WORKDIR clojure-lsp
@@ -13,10 +13,7 @@ RUN git checkout ce34d73f1675852d8f8b064e9f312e12a0fc9b10
 RUN lein deps
 RUN lein compile
 
-ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-RUN chmod +x /tini
-ENTRYPOINT ["/tini", "--"]
+ENTRYPOINT ["tini", "--"]
 
 COPY --from=0 /usr/local/bin/lsp-adapter /usr/local/bin/
 EXPOSE 8080
