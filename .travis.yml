@@ -39,6 +39,8 @@ jobs:
         file_glob: true
         file: release/*
         skip_cleanup: true
+        on:
+          tags: true
     - <<: *release_job
       env: LANGUAGE=ruby
     - <<: *release_job
