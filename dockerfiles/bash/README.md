@@ -1,4 +1,4 @@
-# Experimental bash language server 
+# Experimental Bash language server 
 
 ![](https://cl.ly/271p292i342p/Screen%20Recording%202018-05-07%20at%2009.19%20AM.gif)
 
