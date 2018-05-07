@@ -1,6 +1,6 @@
 # Experimental Bash language server 
 
-![](https://cl.ly/271p292i342p/Screen%20Recording%202018-05-07%20at%2009.19%20AM.gif)
+![demonstration of hovers from the Bash language server inside creationix/nvm](https://cl.ly/271p292i342p/Screen%20Recording%202018-05-07%20at%2009.19%20AM.gif)
 
 *This GIF was created browsing https://sourcegraph.com/github.com/creationix/nvm/-/blob/nvm.sh with this Bash language server enabled.*
 
