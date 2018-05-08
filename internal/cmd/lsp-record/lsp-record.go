@@ -128,15 +128,23 @@ func retryDial(network, address string) (net.Conn, error) {
 	return conn, err
 }
 
-// massageGitHubArchive rewrites filenames to match what we expect. GitHub
-// archives always have a top-level dir, so strip it out.
+// massageGitHubArchive rewrites filenames to match what we expect and removes
+// directory entries. GitHub archives always have a top-level dir, so strip it
+// out.
 //
 // before: dockerfile-language-server-nodejs-3083f51108b5e5ddfd440e6fe3da415d10b9c69c/src/server.ts
 // after:  /src/server.ts
 func massageGitHubArchive(r *zip.ReadCloser) {
-	for i, file := range r.File {
-		r.File[i].Name = file.Name[strings.Index(file.Name, "/"):]
+	i := 0
+	for _, file := range r.File {
+		if file.FileInfo().IsDir() {
+			continue
+		}
+		file.Name = file.Name[strings.Index(file.Name, "/"):]
+		r.File[i] = file
+		i++
 	}
+	r.File = r.File[:i]
 }
 
 // fetchArchiveForRootURI will fetch the git:// URI provided by sourcegraph as
@@ -257,6 +265,9 @@ func newVFSHandler(ar *zip.ReadCloser) jsonrpc2HandlerFunc {
 		}
 
 		log.Println("ignoring server->client request:", req.Method)
+		if req.Notif {
+			return nil, nil
+		}
 		return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeMethodNotFound, Message: fmt.Sprintf("client handler: method not found: %q", req.Method)}
 	}
 }
