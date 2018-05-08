@@ -19,6 +19,8 @@ RUN apt-get update \
   && apt-get update && apt-get install -y apt-transport-https \
   # OmniSharp runs on Mono and requires the .NET SDK 2.0.0.
   && apt-get update && apt-get install -y mono-complete dotnet-sdk-2.0.0 nodejs \
+  # Removes ~1 GB of unused files.
+  && rm -rf /usr/share/dotnet/sdk/NuGetFallbackFolder \
   # omnisharp-client translates between LSP and OmniSharp's custom protocol.
   && npm install -g omnisharp-client@7.2.3
 
