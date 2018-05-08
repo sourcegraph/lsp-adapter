@@ -30,7 +30,7 @@ docker run --publish 7080:7080 --rm --network=lsp --name=sourcegraph --volume ~/
 
 3. Add the following entry to the `langservers` field in the [site configuration](https://about.sourcegraph.com/docs/config):
 
-  ```json
+  ```js
   {
       // ...
       "langservers": [
