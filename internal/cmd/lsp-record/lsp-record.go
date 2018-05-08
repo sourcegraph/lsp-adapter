@@ -444,7 +444,7 @@ func mainErr() error {
 	}
 	if testcase != "-" && !exists(testdataDir) {
 		if err := os.MkdirAll(testdataDir, os.ModePerm); err != nil {
-			return err
+			return errors.Wrapf(err, "error creating testdata directory for %s", lang)
 		}
 	}
 
@@ -476,7 +476,7 @@ func mainErr() error {
 		}
 		fd, err := fileCreateNotExist(filepath.Join(testdataDir, testcase+".input.json"))
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "error writing to %s.input.json", testcase)
 		}
 		defer fd.Close()
 		return record(io.MultiWriter(fd, os.Stdout))
@@ -488,12 +488,12 @@ func mainErr() error {
 	}
 	input, err := os.Open(filepath.Join(testdataDir, testcase+".input.json"))
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "error opening %s.input.json", testcase)
 	}
 	defer input.Close()
 	output, err := os.Create(filepath.Join(testdataDir, testcase+".golden.json"))
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "error writing output to %s.golden.json", testcase)
 	}
 	defer output.Close()
 	return test(input, io.MultiWriter(output, os.Stdout))
