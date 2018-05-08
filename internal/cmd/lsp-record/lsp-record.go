@@ -470,7 +470,8 @@ func mainErr() error {
 		cmd.Wait()
 	}()
 
-	if action == "record" {
+	switch action {
+	case "record":
 		if testcase == "-" {
 			return record(os.Stdout)
 		}
@@ -480,23 +481,26 @@ func mainErr() error {
 		}
 		defer fd.Close()
 		return record(io.MultiWriter(fd, os.Stdout))
-	}
 
-	// test
-	if testcase == "-" {
-		return test(os.Stdin, os.Stdout)
+	case "test":
+		if testcase == "-" {
+			return test(os.Stdin, os.Stdout)
+		}
+		input, err := os.Open(filepath.Join(testdataDir, testcase+".input.json"))
+		if err != nil {
+			return errors.Wrapf(err, "error opening %s.input.json", testcase)
+		}
+		defer input.Close()
+		output, err := os.Create(filepath.Join(testdataDir, testcase+".golden.json"))
+		if err != nil {
+			return errors.Wrapf(err, "error writing output to %s.golden.json", testcase)
+		}
+		defer output.Close()
+		return test(input, io.MultiWriter(output, os.Stdout))
+
+	default:
+		return errors.Errorf("unknown action %s", action)
 	}
-	input, err := os.Open(filepath.Join(testdataDir, testcase+".input.json"))
-	if err != nil {
-		return errors.Wrapf(err, "error opening %s.input.json", testcase)
-	}
-	defer input.Close()
-	output, err := os.Create(filepath.Join(testdataDir, testcase+".golden.json"))
-	if err != nil {
-		return errors.Wrapf(err, "error writing output to %s.golden.json", testcase)
-	}
-	defer output.Close()
-	return test(input, io.MultiWriter(output, os.Stdout))
 }
 
 func main() {
