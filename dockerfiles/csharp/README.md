@@ -50,5 +50,3 @@ docker run --publish 7080:7080 --rm --network=lsp --name=sourcegraph --volume ~/
       // ...
   }
   ```
-
-**Note:** This language server lazily downloads OmniSharp once you open a C# file in Sourcegraph. You should see a message in the console once it's ready.
