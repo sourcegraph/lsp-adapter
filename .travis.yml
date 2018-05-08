@@ -61,6 +61,8 @@ jobs:
       env: LANGUAGE=docker
     - <<: *release_job
       env: LANGUAGE=ocaml
+    - <<: *release_job
+      env: LANGUAGE=csharp
 
 branches:
   only:
