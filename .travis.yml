@@ -63,6 +63,8 @@ jobs:
       env: LANGUAGE=ocaml
     - <<: *release_job
       env: LANGUAGE=csharp
+    - <<: *release_job
+      env: LANGUAGE=haskell
 
 branches:
   only:
