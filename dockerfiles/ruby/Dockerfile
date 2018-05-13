@@ -1,4 +1,4 @@
-FROM golang:1.10-alpine
+FROM golang:1.10-alpine AS lsp-adapter
 WORKDIR /go/src/github.com/sourcegraph/lsp-adapter
 COPY . .
 RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-adapter
@@ -13,8 +13,8 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 ENTRYPOINT ["/tini", "--"]
 
-COPY --from=0 /usr/local/bin/lsp-adapter /usr/local/bin/
-COPY --from=0 /usr/local/bin/solargraph-wrapper /usr/local/bin/
+COPY --from=lsp-adapter /usr/local/bin/lsp-adapter /usr/local/bin/
+COPY --from=lsp-adapter /usr/local/bin/solargraph-wrapper /usr/local/bin/
 EXPOSE 8080
 # Solargraph issues:
 # * Expects string to be a number
