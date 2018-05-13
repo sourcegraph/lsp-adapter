@@ -17,7 +17,7 @@ Thanks to the [mads-hartmann/bash-language-server](https://github.com/mads-hartm
 1. Run the `sourcegarph/server` Docker image: 
 
 ```shell
-docker run --publish 7080:7080 --rm --network=lsp --name=sourcegraph --volume ~/.sourcegraph/config:/etc/sourcegraph --volume ~/.sourcegraph/data:/var/opt/sourcegraph sourcegraph/server:2.7.6
+docker run --publish 7080:7080 --rm --network=lsp --name=sourcegraph --volume ~/.sourcegraph/config:/etc/sourcegraph --volume ~/.sourcegraph/data:/var/opt/sourcegraph -v /var/run/docker.sock:/var/run/docker.sock sourcegraph/server:2.7.6
 ```
 
 2. Run the experimental Bash language server:
