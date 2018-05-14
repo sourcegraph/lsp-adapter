@@ -15,7 +15,8 @@ RUN apt-get update \
   # that it was compiled with. 8.2.2 is fairly recent (November 2017) and is
   # shown as an example in the README:
   # https://github.com/haskell/haskell-ide-engine/tree/753deb91f9b9b39f14722315277d9fd587716bde#for-ghc-822
-  && stack --stack-yaml=stack-8.2.2.yaml install
+  && stack --stack-yaml=stack-8.2.2.yaml install \
+  && find . -name .git | xargs rm -rf
 
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
