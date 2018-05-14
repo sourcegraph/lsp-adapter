@@ -23,6 +23,7 @@ jobs:
         - test -z $(goimports -d $GO_FILES) # this test asserts import ordering
         - test -z $(gofmt -s -d $GO_FILES)
         - go test -v ./...
+        - docker build -f dockerfiles/haskell/Dockerfile .
     - stage: release
       if: tag =~ ^v AND fork = false
       install:
