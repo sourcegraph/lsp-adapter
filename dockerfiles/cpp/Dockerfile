@@ -1,4 +1,4 @@
-FROM golang:1.10-alpine
+FROM golang:1.10-alpine AS lsp-adapter
 WORKDIR /go/src/github.com/sourcegraph/lsp-adapter
 COPY . .
 RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-adapter
@@ -19,6 +19,6 @@ RUN tar xf clangd-debian-8.tar.gz -C /usr/local \
   && rm clangd-debian-8.tar.gz \
   && chmod +x /usr/local/bin/clangd
 
-COPY --from=0 /usr/local/bin/lsp-adapter /usr/local/bin
+COPY --from=lsp-adapter /usr/local/bin/lsp-adapter /usr/local/bin
 EXPOSE 8080
 CMD ["lsp-adapter", "--proxyAddress=0.0.0.0:8080", "-didOpenLanguage=cpp", "clangd"]

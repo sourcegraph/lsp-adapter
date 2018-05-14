@@ -14,8 +14,12 @@ release_job: &release_job
 jobs:
   include:
     - stage: test
+      env:
+        # Path to 'hadolint' binary
+        HADOLINT: "${HOME}/hadolint"
       install:
         - go get -v golang.org/x/tools/cmd/goimports
+        - curl -sL -o ${HADOLINT} "https://github.com/hadolint/hadolint/releases/download/v1.6.5/hadolint-$(uname -s)-$(uname -m)" && chmod 700 ${HADOLINT}
       before_script:
         - cd $TRAVIS_BUILD_DIR
         - GO_FILES=$(find . -type f -name '*.go' -not -path "./vendor/*")
@@ -23,6 +27,7 @@ jobs:
         - test -z $(goimports -d $GO_FILES) # this test asserts import ordering
         - test -z $(gofmt -s -d $GO_FILES)
         - go test -v ./...
+        - ${HADOLINT} dockerfiles/*/Dockerfile
     - stage: release
       if: tag =~ ^v AND fork = false
       install:

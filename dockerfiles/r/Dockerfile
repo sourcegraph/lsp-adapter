@@ -1,4 +1,4 @@
-FROM golang:1.10-alpine
+FROM golang:1.10-alpine AS lsp-adapter
 WORKDIR /go/src/github.com/sourcegraph/lsp-adapter
 COPY . .
 RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-adapter
@@ -16,6 +16,6 @@ RUN chmod +x /tini
 ENTRYPOINT ["/tini", "--"]
 
 # Modify these commands to connect to the language server
-COPY --from=0 /usr/local/bin/lsp-adapter /usr/local/bin
+COPY --from=lsp-adapter /usr/local/bin/lsp-adapter /usr/local/bin
 EXPOSE 8080
 CMD ["lsp-adapter", "--didOpenLanguage=r", "--trace", "--proxyAddress=0.0.0.0:8080", "R", "--quiet", "--slave", "-e", "languageserver::run()"]
