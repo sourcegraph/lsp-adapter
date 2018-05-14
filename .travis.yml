@@ -70,6 +70,8 @@ jobs:
       env: LANGUAGE=lua
     - <<: *release_job
       env: LANGUAGE=csharp
+    - <<: *release_job
+      env: LANGUAGE=r
 
 branches:
   only:
