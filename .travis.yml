@@ -67,6 +67,8 @@ jobs:
     - <<: *release_job
       env: LANGUAGE=ocaml
     - <<: *release_job
+      env: LANGUAGE=lua
+    - <<: *release_job
       env: LANGUAGE=csharp
 
 branches:
