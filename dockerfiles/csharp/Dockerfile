@@ -8,7 +8,7 @@ RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-ada
 FROM ubuntu:16.04
 
 RUN apt-get update \
-  && apt-get install -y gnupg=1.4.20-1ubuntu3.1 curl=7.47.0-1ubuntu2.7 jq=1.5+dfsg-1 \
+  && apt-get install --no-install-recommends -y gnupg=1.4.20-1ubuntu3.1 curl=7.47.0-1ubuntu2.7 jq=1.5+dfsg-1 \
   # Ubuntu 16.04's default nodejs package v4.2.6 is too old to run the
   # omnisharp-client npm package.
   && curl -sL https://deb.nodesource.com/setup_10.x | bash - \
@@ -16,11 +16,12 @@ RUN apt-get update \
   && echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu-xenial-prod xenial main" > /etc/apt/sources.list.d/dotnetdev.list \
   && echo "deb https://download.mono-project.com/repo/ubuntu stable-xenial main" > /etc/apt/sources.list.d/mono-official-stable.list \
   && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF \
-  && apt-get update && apt-get install -y apt-transport-https=1.2.26 \
+  && apt-get update && apt-get install --no-install-recommends -y apt-transport-https=1.2.26 \
   # OmniSharp runs on Mono and requires the .NET SDK 2.0.0.
-  && apt-get update && apt-get install -y mono-complete=5.12.0.226-0xamarin3+ubuntu1604b1 dotnet-sdk-2.0.0=2.0.0-1 nodejs=10.1.0-1nodesource1 \
+  && apt-get update && apt-get install --no-install-recommends -y mono-complete=5.12.0.226-0xamarin3+ubuntu1604b1 dotnet-sdk-2.0.0=2.0.0-1 nodejs=10.1.0-1nodesource1 \
   # Removes ~1 GB of unused files.
   && rm -rf /usr/share/dotnet/sdk/NuGetFallbackFolder \
+  && rm -rf /var/lib/apt/lists/* \
   # omnisharp-client translates between LSP and OmniSharp's custom protocol.
   && npm install -g omnisharp-client@7.2.3
 
@@ -28,7 +29,7 @@ RUN apt-get update \
 # omnisharp-client doesn't have to download it upon initialization.
 ENV BASE=/usr/lib/node_modules/omnisharp-client
 RUN mkdir "$BASE/omnisharp-linux-x64"
-RUN VERSION="$(cat "$BASE/package.json" | jq -r .[\"omnisharp-roslyn\"])" \
+RUN VERSION="$(jq -r ".[\"omnisharp-roslyn\"]" < "$BASE/package.json")" \
   && curl -L "https://github.com/OmniSharp/omnisharp-roslyn/releases/download/$VERSION/omnisharp-linux-x64.tar.gz" -o "$BASE/omnisharp-linux-x64.tar.gz" \
   && echo "$VERSION" > "$BASE/omnisharp-linux-x64/.version" \
   && tar xvf "$BASE/omnisharp-linux-x64.tar.gz" -C "$BASE/omnisharp-linux-x64"
