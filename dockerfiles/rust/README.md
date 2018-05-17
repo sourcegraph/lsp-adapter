@@ -10,4 +10,4 @@ This Dockerfile adds experimental Rust language support for Sourcegraph.
 
 Thanks to the [rust-lang-nursery/rls](https://github.com/rust-lang-nursery/rls) project for providing the language server that's wrapped by `lsp-adapter` in this image.
 
-Check out the [Sourcegraph docs](http://about.sourcegraph.com/docs/code-intelligence/preview-languages) for information on enabling this language server for your Sourcegraph installation.
+Check out the [Sourcegraph docs](http://about.sourcegraph.com/docs/code-intelligence/experimental-languages) for information on enabling this language server for your Sourcegraph installation.
