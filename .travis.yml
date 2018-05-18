@@ -72,6 +72,8 @@ jobs:
       env: LANGUAGE=csharp
     - <<: *release_job
       env: LANGUAGE=r
+    - <<: *release_job
+      env: LANGUAGE=haskell
 
 branches:
   only:
