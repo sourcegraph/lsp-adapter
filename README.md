@@ -5,14 +5,14 @@ vanilla LSP requests.
 
 ## Background
 
-[Code Intelligence on Sourcegraph](https://about.sourcegraph.com/docs/code-intelligence/) is powered by the [Language Server Protocol](https://microsoft.github.io/language-server-protocol/). 
+[Code Intelligence on Sourcegraph](https://about.sourcegraph.com/docs/code-intelligence/) is powered by the [Language Server Protocol](https://microsoft.github.io/language-server-protocol/).
 
 Previously, language servers that were used on sourcegraph.com were additionally required to support our
-custom LSP [files extensions](https://github.com/sourcegraph/language-server-protocol/blob/master/extension-files.md). These extensions allowed language servers to operate without sharing a physical file system with the client. While it's preferable for language servers to implement these extensions for performance reasons, implementing this functionality is a large undertaking.  
+custom LSP [files extensions](https://github.com/sourcegraph/language-server-protocol/blob/master/extension-files.md). These extensions allowed language servers to operate without sharing a physical file system with the client. While it's preferable for language servers to implement these extensions for performance reasons, implementing this functionality is a large undertaking.
 
 `lsp-adapter` eliminates the need for this requirement, which allows off-the-shelf language servers to be able to provide basic functionality (hovers, local definitions) to Sourcegraph.
 
-## How to Install 
+## How to Install
 
 You can download the latest binary on the [releases page](https://github.com/sourcegraph/lsp-adapter/releases).
 
@@ -22,10 +22,10 @@ Alternatively, install it with `go get`:
 go get -u -v github.com/sourcegraph/lsp-adapter
 ```
 
-Running `lsp-adapter --help` shows you some of its options: 
+Running `lsp-adapter --help` shows you some of its options:
 
 ```shell
-> lsp-adapter --help                                                                                          
+> lsp-adapter --help
 Usage: lsp-adapter [OPTIONS] LSP_COMMAND_ARGS...
 
 Options:
@@ -50,7 +50,7 @@ Options:
 - How to connect to your Sourcegraph instance to `lsp-adapter`
 
 
-### Connect `lsp-adapter` to the Language Server 
+### Connect `lsp-adapter` to the Language Server
 
 `lsp-adapter` can talk to language servers over standard I/O.
 
@@ -79,7 +79,7 @@ Any stderr output from the binary will also appear in `lsp-adapter`'s logs.
 ```
 would be the new entry that needs to be added to the `"langservers"` field.
 
-## Example Commands 
+## Example Commands
 
 Connect via standard I/O to a language server whose command can be run with `rls`, and listen for connections from Sourcegraph from any address on port `1234`.
 
@@ -95,7 +95,7 @@ Connect via standard I/O to a language server whose command can be run with `rls
 > lsp-adapter -cacheDir='/tmpDir' -trace rls
 ```
 
-## Docker 
+## Docker
 
 There is a [skeleton Dockerfile](./Dockerfile) that shows how to package `lsp-adapter` along with your desired language server inside of a docker container. There are fully working examples in [dockerfiles](./dockerfiles). For example [dockerfiles/rust/Dockerfile](./dockerfiles/rust/Dockerfile), which can be built with:
 
@@ -107,11 +107,11 @@ There is a [skeleton Dockerfile](./Dockerfile) that shows how to package `lsp-ad
 
 Most language servers will only ever look at files that match a set of known patterns. On initialize lsp-adapter copies a full work-tree to disk for a repository, but by specify `-glob` we can avoid copying over files that will not be looked at. For example, if a python language server only looks at `py` and `pyc` files you can specify `-glob=*.py:*.pyc`. The matching is done on the basename of the path using [path.Match](https://godoc.org/path#Match).
 
-## Did Open Hack 
+## Did Open Hack
 
 Some language servers do not follow the LSP spec correctly and refuse to work unless the `textDocument/didOpen` notification has been sent. See [this commit](https://github.com/sourcegraph/lsp-adapter/commit/1228a1fbaf102aa44575cec6802a5a211d117ee1) for more context. If the language server that you’re trying to use has this issue, try setting the `didOpenLanguage` flag (example: if a python language server had this issue - use `./lsp-adapter -didOpenLanguage=python ...`) to work around it.
 
 
 ## JSONRPC2 ID Rewrite Hack
 
-Some langauge servers do not follow the JSONRPC2 spec correctly and fail if the Request ID is not a number of string. If the language server that you’re trying to use has this issue, try setting the `jsonrpc2IDRewrite` flag (example: if a rust language server had this issue - use `./lsp-adapter -jsonrpc2IDRewrite=number ...`) to work around it.
+Some language servers do not follow the JSONRPC2 spec correctly and fail if the Request ID is not a number of string. If the language server that you’re trying to use has this issue, try setting the `jsonrpc2IDRewrite` flag (example: if a rust language server had this issue - use `./lsp-adapter -jsonrpc2IDRewrite=number ...`) to work around it.
