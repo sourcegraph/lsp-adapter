@@ -30,7 +30,7 @@ var (
 	cacheDir          = flag.String("cacheDirectory", filepath.Join(os.TempDir(), "proxy-cache"), "cache directory location")
 	didOpenLanguage   = flag.String("didOpenLanguage", "", "(HACK) If non-empty, send 'textDocument/didOpen' notifications with the specified language field (e.x. 'python') to the language server for every file.")
 	jsonrpc2IDRewrite = flag.String("jsonrpc2IDRewrite", "none", "(HACK) Rewrite jsonrpc2 ID. none (default) is no rewriting. string will use a string ID. number will use number ID. Useful for language servers with non-spec complaint JSONRPC2 implementations.")
-	glob              = flag.String("glob", "", "A colon (:) separated list of file globs to sync locally. By default we place all files into the workspace, but some language servers may only look at a subset of files. Specifying this allows us to avoid syncing all files. Note: This is done base name only.")
+	glob              = flag.String("glob", "", "A colon (:) separated list of file globs to sync locally. By default we place all files into the workspace, but some language servers may only look at a subset of files. Specifying this allows us to avoid syncing all files. Note: This is done by basename only.")
 	trace             = flag.Bool("trace", false, "trace logs to stderr")
 )
 

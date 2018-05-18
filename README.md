@@ -34,7 +34,7 @@ Options:
   -didOpenLanguage string
       (HACK) If non-empty, send 'textDocument/didOpen' notifications with the specified language field (e.x. 'python') to the language server for every file.
   -glob string
-      A colon (:) separated list of file globs to sync locally. By default we place all files into the workspace, but some language servers may only look at a subset of files. Specifying this allows us to avoid syncing all files. Note: This is done base name only.
+      A colon (:) separated list of file globs to sync locally. By default we place all files into the workspace, but some language servers may only look at a subset of files. Specifying this allows us to avoid syncing all files. Note: This is done by basename only.
   -jsonrpc2IDRewrite string
       (HACK) Rewrite jsonrpc2 ID. none (default) is no rewriting. string will use a string ID. number will use a number ID. Useful for language servers with non-spec complaint JSONRPC2 implementations. (default "none")
   -proxyAddress string
@@ -46,7 +46,7 @@ Options:
 
 `lsp-adapter` proxies requests between your Sourcegraph instance and the language server, and modifies them in such a way that allows for the two to communicate correctly. In order to do this, we need to know
 
-- How to connect to connect `lsp-adapter` to the language server
+- How to connect `lsp-adapter` to the language server
 - How to connect to your Sourcegraph instance to `lsp-adapter`
 
 
@@ -56,7 +56,7 @@ Options:
 
 `lsp-adapter` interprets any positional arguments after the flags as the necessary command (+ arguments) to start the language server binary. It uses this command to communicate to the language server inside of a subprocess.
 
-For example, if I am trying to use Rust’s language server, the command to start it up is just rls. `lsp-adapter` can be told to start the start the same server via:
+For example, if I am trying to use Rust’s language server, the command to start it up is just `rls`. `lsp-adapter` can be told to start the start the same server via:
 
 ```shell
 lsp-adapter rls
@@ -105,7 +105,7 @@ There is a [skeleton Dockerfile](./Dockerfile) that shows how to package `lsp-ad
 
 ## Glob
 
-Most language servers will only ever look at files that match a set of known patterns. On initialize lsp-adapter copies a full work-tree to disk for a repository, but by specify `-glob` we can avoid copying over files that will not be looked at. For example, if a python language server only looks at `py` and `pyc` files you can specify `-glob=*.py:*.pyc`. The matching is done on the basename of the path using [path.Match](https://godoc.org/path#Match).
+Most language servers will only ever look at files that match a set of known patterns. On initialize lsp-adapter copies a full work-tree to disk for a repository, but by specifying `-glob` we can avoid copying over files that will not be looked at. For example, if a python language server only looks at `py` and `pyc` files you can specify `-glob=*.py:*.pyc`. The matching is done on the basename of the path using [path.Match](https://godoc.org/path#Match).
 
 ## Did Open Hack
 
