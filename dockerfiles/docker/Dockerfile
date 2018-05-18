@@ -3,10 +3,7 @@ WORKDIR /go/src/github.com/sourcegraph/lsp-adapter
 COPY . .
 RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-adapter
 
-# The only tag available is latest.
-# https://github.com/rcjsuen/dockerfile-language-server-nodejs/issues/222
-# hadolint ignore=DL3007
-FROM rcjsuen/docker-langserver:latest
+FROM rcjsuen/docker-langserver:0.0.17
 
 RUN apk add --no-cache tini=0.16.1-r0
 ENTRYPOINT ["tini", "--"]
