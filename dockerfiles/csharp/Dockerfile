@@ -8,7 +8,7 @@ RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-ada
 FROM ubuntu:16.04
 
 RUN apt-get update \
-  && apt-get install --no-install-recommends -y gnupg=1.4.20-1ubuntu3.1 curl=7.47.0-1ubuntu2.7 jq=1.5+dfsg-1 \
+  && apt-get install --no-install-recommends -y gnupg=1.4.20-1ubuntu3.1 curl=7.47.0-1ubuntu2.8 jq=1.5+dfsg-1 \
   # Ubuntu 16.04's default nodejs package v4.2.6 is too old to run the
   # omnisharp-client npm package.
   && curl -sL https://deb.nodesource.com/setup_10.x | bash - \
