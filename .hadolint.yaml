@@ -1,0 +1,5 @@
+ignored:
+  # Ignore unpinned apt-get package versions
+  - DL3008
+  # Ignore unpinned apk package versions
+  - DL3018

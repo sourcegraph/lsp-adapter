@@ -6,20 +6,20 @@ RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-ada
 FROM mongo:3.7.9
 
 RUN apt-get update \
-  && apt-get install --no-install-recommends -y curl=7.47.0-1ubuntu2.8 \
+  && apt-get install --no-install-recommends -y curl \
   && rm -rf /var/lib/apt/lists/*
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN apt-get update \
   && apt-get install --no-install-recommends -y \
-    nodejs=8.11.3-1nodesource1 \
-    man-db=2.7.5-1 \
-    netcat=1.10-41 \
-    python=2.7.12-1~16.04 \
-    python-pip=8.1.1-2ubuntu0.4 \
-    git=1:2.7.4-0ubuntu1.4 \
-    yarn=1.7.0-1 \
+    nodejs \
+    man-db \
+    netcat \
+    python \
+    python-pip \
+    git \
+    yarn \
   && rm -rf /var/lib/apt/lists/*
 
 # Downgrade pip because explainshell depends on this API.
@@ -52,9 +52,9 @@ RUN chmod +x /tini
 ENTRYPOINT ["/tini", "--"]
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
-	make=4.1-6 \
-	gcc=4:5.3.1-1ubuntu1 \
-	g++=4:5.3.1-1ubuntu1 \
+	make \
+	gcc \
+	g++ \
   && rm -rf /var/lib/apt/lists/*
 
 # Ignore the warning about using WORKDIR instead of cd for convenience.

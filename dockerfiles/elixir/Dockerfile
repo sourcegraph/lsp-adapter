@@ -16,7 +16,7 @@ ENTRYPOINT ["/tini", "--"]
 
 ENV EXLIXIR_LS_VERSION v0.2.18
 ADD https://github.com/JakeBecker/elixir-ls/releases/download/${EXLIXIR_LS_VERSION}/elixir-ls.zip .
-RUN apt-get update && apt-get install --no-install-recommends -y unzip=6.0-21 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install --no-install-recommends -y unzip && rm -rf /var/lib/apt/lists/*
 RUN unzip elixir-ls.zip && rm elixir-ls.zip
 RUN chmod +x language_server.sh
 
