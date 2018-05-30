@@ -8,7 +8,7 @@ RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-ada
 FROM ubuntu:16.04
 
 RUN apt-get update \
-  && apt-get install --no-install-recommends -y gnupg=1.4.20-1ubuntu3.1 curl=7.47.0-1ubuntu2.7 jq=1.5+dfsg-1 \
+  && apt-get install --no-install-recommends -y ca-certificates=20170717~16.04.1 gnupg=1.4.20-1ubuntu3.1 curl=7.47.0-1ubuntu2.8 jq=1.5+dfsg-1 \
   # Ubuntu 16.04's default nodejs package v4.2.6 is too old to run the
   # omnisharp-client npm package.
   && curl -sL https://deb.nodesource.com/setup_10.x | bash - \
@@ -18,7 +18,7 @@ RUN apt-get update \
   && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF \
   && apt-get update && apt-get install --no-install-recommends -y apt-transport-https=1.2.26 \
   # OmniSharp runs on Mono and requires the .NET SDK 2.0.0.
-  && apt-get update && apt-get install --no-install-recommends -y mono-complete=5.12.0.226-0xamarin3+ubuntu1604b1 dotnet-sdk-2.0.0=2.0.0-1 nodejs=10.1.0-1nodesource1 \
+  && apt-get update && apt-get install --no-install-recommends -y mono-complete=5.12.0.226-0xamarin3+ubuntu1604b1 dotnet-sdk-2.0.0=2.0.0-1 nodejs=10.2.1-1nodesource1 \
   # Removes ~1 GB of unused files.
   && rm -rf /usr/share/dotnet/sdk/NuGetFallbackFolder \
   && rm -rf /var/lib/apt/lists/* \
