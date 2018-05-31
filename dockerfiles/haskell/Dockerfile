@@ -7,7 +7,7 @@ RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-ada
 # It has to be a separate, manually-built, image because the Travis environment
 # only provides 3 GB of RAM, which is not enough to compile haskell-ide-engine.
 # The Dockerfile is defined in ../haskell-ide-engine/Dockerfile.
-FROM sourcegraph/haskell-ide-engine:753deb9
+FROM sourcegraph/haskell-ide-engine:562ac94
 
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
