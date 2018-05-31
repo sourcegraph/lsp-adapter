@@ -23,4 +23,4 @@ RUN npm i -g bash-language-server@1.3.1
 COPY --from=lsp-adapter /usr/local/bin/lsp-adapter /usr/local/bin
 EXPOSE 8080
 # Modify this command to connect to the language server
-CMD ["lsp-adapter", "--trace", "--proxyAddress=0.0.0.0:8080", "bash-language-server", "start"]
+CMD ["lsp-adapter", "--trace", "--glob=*.sh:*.bash:*.zsh", "--proxyAddress=0.0.0.0:8080", "bash-language-server", "start"]
