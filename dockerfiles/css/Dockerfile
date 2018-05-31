@@ -23,4 +23,4 @@ RUN npm i -g vscode-css-languageserver-bin@1.3.0
 COPY --from=lsp-adapter /usr/local/bin/lsp-adapter /usr/local/bin
 EXPOSE 8080
 # Modify this command to connect to the language server
-CMD ["lsp-adapter", "--trace", "--didOpenLanguage='css'", "--proxyAddress=0.0.0.0:8080", "css-languageserver", "--stdio"]
+CMD ["lsp-adapter", "--trace", "--didOpenLanguage='css'", "--glob=*.css:*.scss:*.less", "--proxyAddress=0.0.0.0:8080", "css-languageserver", "--stdio"]
