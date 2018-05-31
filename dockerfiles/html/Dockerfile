@@ -23,4 +23,4 @@ RUN npm i -g vscode-html-languageserver-bin@1.3.0
 COPY --from=lsp-adapter /usr/local/bin/lsp-adapter /usr/local/bin
 EXPOSE 8080
 # Modify this command to connect to the language server
-CMD ["lsp-adapter", "--trace", "--didOpenLanguage='html'", "--proxyAddress=0.0.0.0:8080", "html-languageserver", "--stdio"]
+CMD ["lsp-adapter", "--trace", "--didOpenLanguage='html'", "--glob=*.html", "--proxyAddress=0.0.0.0:8080", "html-languageserver", "--stdio"]
