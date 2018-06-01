@@ -18,7 +18,7 @@ RUN apt-get update \
   && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF \
   && apt-get update && apt-get install --no-install-recommends -y apt-transport-https=1.2.26 \
   # OmniSharp runs on Mono and requires the .NET SDK 2.0.0.
-  && apt-get update && apt-get install --no-install-recommends -y mono-complete=5.12.0.226-0xamarin3+ubuntu1604b1 dotnet-sdk-2.0.0=2.0.0-1 nodejs=10.2.1-1nodesource1 \
+  && apt-get update && apt-get install --no-install-recommends -y mono-complete=5.12.0.226-0xamarin3+ubuntu1604b1 dotnet-sdk-2.0.0=2.0.0-1 nodejs=10.3.0-1nodesource1 \
   # Removes ~1 GB of unused files.
   && rm -rf /usr/share/dotnet/sdk/NuGetFallbackFolder \
   && rm -rf /var/lib/apt/lists/* \
