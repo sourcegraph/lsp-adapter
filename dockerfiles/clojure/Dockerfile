@@ -4,7 +4,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-adapter
 
 FROM clojure:lein-2.8.1-alpine
-RUN apk add --no-cache ca-certificates=20171114-r0 git=2.15.0-r1 tini=0.16.1-r0
+RUN apk add --no-cache ca-certificates=20171114-r0 git=2.15.2-r0 tini=0.16.1-r0
 
 WORKDIR /tmp
 RUN git clone https://github.com/snoe/clojure-lsp.git
