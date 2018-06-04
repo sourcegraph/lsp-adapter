@@ -51,10 +51,11 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 ENTRYPOINT ["/tini", "--"]
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
 	make=4.1-6 \
 	gcc=4:5.3.1-1ubuntu1 \
-	g++=4:5.3.1-1ubuntu1
+	g++=4:5.3.1-1ubuntu1 \
+  && rm -rf /var/lib/apt/lists/*
 
 # This should be changed to the upstream
 # https://github.com/mads-hartmann/bash-language-server once ???dependency cycle??? is merged in.
