@@ -8,7 +8,7 @@ release_job: &release_job
   services:
     - docker
   install: skip
-  if: branch = master AND type = push AND fork = false
+  if: (branch = master OR branch =~ /^v.*$/) AND type = push AND fork = false
   script: bash deploy_image.sh
 
 jobs:
