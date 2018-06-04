@@ -1,5 +1,4 @@
 .git/
-dockerfiles/
+dockerfiles/*/README.md
+dockerfiles/*/Dockerfile
 internal/
-
-!dockerfiles/ruby/solargraph-wrapper.go
