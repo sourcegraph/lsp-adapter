@@ -76,7 +76,7 @@ COPY . .
 #
 # Ignore the warning about using WORKDIR instead of cd for convenience.
 # hadolint ignore=DL3003
-RUN cd explainshell && ../populate-explainshell-db.sh
+RUN cd explainshell && ../dockerfiles/bash/populate-explainshell-db.sh
 
 # https://stackoverflow.com/a/33601894
 # This might not be necessary because this db is read-only
@@ -86,4 +86,4 @@ RUN cd explainshell && ../populate-explainshell-db.sh
 COPY --from=lsp-adapter /usr/local/bin/lsp-adapter /usr/local/bin
 EXPOSE 8080
 
-CMD ["./run-bash-language-server.sh"]
+CMD ["./dockerfiles/bash/run-bash-language-server.sh"]
