@@ -58,7 +58,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   && rm -rf /var/lib/apt/lists/*
 
 # This should be changed to the upstream
-# https://github.com/mads-hartmann/bash-language-server once ???dependency cycle??? is merged in.
+# https://github.com/mads-hartmann/bash-language-server once
+# https://github.com/mads-hartmann/bash-language-server/pull/45 is merged in.
 #
 # Ignore the warning about using WORKDIR instead of cd for convenience.
 # hadolint ignore=DL3003
