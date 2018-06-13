@@ -13,12 +13,12 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN apt-get update \
   && apt-get install --no-install-recommends -y \
-    nodejs=8.11.2-1nodesource1 \
+    nodejs=8.11.3-1nodesource1 \
     man-db=2.7.5-1 \
     netcat=1.10-41 \
     python=2.7.12-1~16.04 \
     python-pip=8.1.1-2ubuntu0.4 \
-    git=1:2.7.4-0ubuntu1.3 \
+    git=1:2.7.4-0ubuntu1.4 \
     yarn=1.7.0-1 \
   && rm -rf /var/lib/apt/lists/*
 
@@ -33,7 +33,7 @@ RUN pip install --upgrade pip==9.0.3
 RUN git clone https://github.com/chrismwendt/explainshell \
   && cd explainshell \
   && git checkout 775a6097ab19ec9ee320919f7f29f7041513125e \
-  && rm -rf explainshell/.git \
+  && rm -rf .git \
   && pip install setuptools==39.2.0 \
   && pip install -r requirements.txt \
   # Prepare for baking the man page data into this image by pointing mongo at a
@@ -57,15 +57,12 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 	g++=4:5.3.1-1ubuntu1 \
   && rm -rf /var/lib/apt/lists/*
 
-# This should be changed to the upstream
-# https://github.com/mads-hartmann/bash-language-server once
-# https://github.com/mads-hartmann/bash-language-server/pull/45 is merged in.
-#
 # Ignore the warning about using WORKDIR instead of cd for convenience.
 # hadolint ignore=DL3003
-RUN git clone https://github.com/chrismwendt/bash-language-server \
+RUN git clone https://github.com/mads-hartmann/bash-language-server \
   && cd bash-language-server \
-  && git checkout explainshell \
+  && git checkout 8790f7428e42b6c421e2dd224c7b45285809768e \
+  && rm -rf .git \
   && make build \
   && make install \
   && yarn global add file:"$(pwd)"/server
