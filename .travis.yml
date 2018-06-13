@@ -19,10 +19,10 @@ jobs:
     - stage: test
       env:
         # Path to 'hadolint' binary
-        HADOLINT: "${HOME}/hadolint"
+        - HADOLINT=$HOME/hadolint
       install:
         - go get -v golang.org/x/tools/cmd/goimports
-        - curl -sL -o ${HADOLINT} "https://github.com/hadolint/hadolint/releases/download/v1.6.5/hadolint-$(uname -s)-$(uname -m)" && chmod 700 ${HADOLINT}
+        - curl -sL -o $HADOLINT "https://github.com/hadolint/hadolint/releases/download/v1.6.5/hadolint-$(uname -s)-$(uname -m)" && chmod 700 ${HADOLINT}
       before_script:
         - cd $TRAVIS_BUILD_DIR
         - GO_FILES=$(find . -type f -name '*.go' -not -path "./vendor/*")
