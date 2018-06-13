@@ -82,7 +82,7 @@ func main() {
 
 	// Ensure the path exists, otherwise symlinks to it cannot be resolved.
 	if err := os.MkdirAll(*unresolvedCacheDir, os.ModePerm); err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error when checking -cacheDirectory=%q to check if it exists: %s", *unresolvedCacheDir, err)
 	}
 
 	// Resolve symlinks to avoid path mismatches in situations where the
