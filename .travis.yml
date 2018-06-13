@@ -3,7 +3,9 @@ language: go
 go:
   - 1.10.x
 
-release_job: &release_job
+# Base configuration for the jobs that release the codeintel Docker images to DockerHub.
+# Referenced further down.
+codeintel_image_release_job: &codeintel_image_release_job
   stage: release
   services:
     - docker
@@ -13,6 +15,7 @@ release_job: &release_job
 
 jobs:
   include:
+    # Test lsp-adapter and lint Dockerfiles
     - stage: test
       env:
         # Path to 'hadolint' binary
@@ -28,6 +31,7 @@ jobs:
         - test -z $(gofmt -s -d $GO_FILES)
         - go test -v ./...
         - ${HADOLINT} dockerfiles/*/Dockerfile
+    # Release lsp-adapter (only on tags)
     - stage: release
       if: tag =~ ^v AND fork = false
       install:
@@ -46,33 +50,34 @@ jobs:
         skip_cleanup: true
         on:
           tags: true
-    - <<: *release_job
+    # Jobs to release codeintel images to DockerHub
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=ruby
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=rust
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=html
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=elixir
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=css
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=cpp
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=clojure
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=bash
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=docker
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=ocaml
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=lua
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=csharp
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=r
-    - <<: *release_job
+    - <<: *codeintel_image_release_job
       env: LANGUAGE=haskell
 
 branches:
