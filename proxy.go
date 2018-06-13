@@ -90,7 +90,7 @@ func main() {
 	// server: https://github.com/sourcegraph/sourcegraph/issues/11867
 	resolvedCacheDir, err := filepath.EvalSymlinks(*unresolvedCacheDir)
 	if err != nil {
-		log.Fatalf("Could not resolve symlinks in -cacheDirectory=%s because: %s", *unresolvedCacheDir, err)
+		log.Fatalf("Could not resolve symlinks in -cacheDirectory=%q because: %s", *unresolvedCacheDir, err)
 	}
 	cacheDir = &resolvedCacheDir
 
