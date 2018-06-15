@@ -5,7 +5,7 @@ RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-ada
 
 FROM rcjsuen/docker-langserver:0.0.17
 
-RUN apk add --no-cache tini=0.16.1-r0
+RUN apk add --no-cache tini
 ENTRYPOINT ["tini", "--"]
 
 COPY --from=lsp-adapter /usr/local/bin/lsp-adapter /usr/local/bin/

@@ -8,7 +8,7 @@ RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-ada
 
 FROM abaez/luarocks:lua5.1
 
-RUN apk add --no-cache ca-certificates=20161130-r2 git=2.13.7-r0 tini=0.14.0-r0
+RUN apk add --no-cache ca-certificates git tini
 
 ENTRYPOINT ["/sbin/tini", "--"]
 
