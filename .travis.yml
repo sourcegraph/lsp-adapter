@@ -3,14 +3,14 @@ language: go
 go:
   - 1.10.x
 
-# Base configuration for the jobs that release the codeintel Docker images to DockerHub.
+# Base configuration for the jobs that release the codeintel Docker images to DockerHub (on commits to master).
 # Referenced further down.
 codeintel_image_release_job: &codeintel_image_release_job
   stage: release
   services:
     - docker
   install: skip
-  if: (branch = master OR branch =~ /^v.*$/) AND type = push AND fork = false
+  if: branch = master AND type = push AND fork = false
   script: bash deploy_image.sh
 
 jobs:
