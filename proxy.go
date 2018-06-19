@@ -28,6 +28,7 @@ var (
 	proxyAddr          = flag.String("proxyAddress", "127.0.0.1:8080", "proxy server listen address (tcp)")
 	pprofAddr          = flag.String("pprofAddr", "", "server listen address for pprof")
 	cacheDir           *string
+	cloneToCache       = flag.Bool("cloneToCache", true, "use xfiles and xcontent to copy the workspace to the cacheDirectory")
 	unresolvedCacheDir = flag.String("cacheDirectory", filepath.Join(os.TempDir(), "proxy-cache"), "cache directory location")
 	didOpenLanguage    = flag.String("didOpenLanguage", "", "(HACK) If non-empty, send 'textDocument/didOpen' notifications with the specified language field (e.x. 'python') to the language server for every file.")
 	jsonrpc2IDRewrite  = flag.String("jsonrpc2IDRewrite", "none", "(HACK) Rewrite jsonrpc2 ID. none (default) is no rewriting. string will use a string ID. number will use number ID. Useful for language servers with non-spec complaint JSONRPC2 implementations.")
@@ -205,7 +206,7 @@ func (p *cloneProxy) handleServerRequest(ctx context.Context, conn *jsonrpc2.Con
 func (p *cloneProxy) handleClientRequest(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
 	<-p.ready
 
-	if req.Method == "initialize" {
+	if req.Method == "initialize" && *cloneToCache {
 		globs := strings.FieldsFunc(*glob, func(r rune) bool { return r == ':' })
 		if err := p.cloneWorkspaceToCache(globs); err != nil {
 			log.Println("CloneProxy.handleClientRequest(): cloning workspace failed during initialize", err)

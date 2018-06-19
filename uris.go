@@ -36,6 +36,10 @@ func (p *cloneProxy) workspaceCacheDir() string {
 }
 
 func clientToServerURI(uri lsp.DocumentURI, sysCacheDir string) lsp.DocumentURI {
+	if !*cloneToCache {
+		return uri
+	}
+
 	// sysCacheDir needs to be converted from a local path to a URI path
 	cacheDir := filepath.ToSlash(sysCacheDir)
 
@@ -57,6 +61,10 @@ func clientToServerURI(uri lsp.DocumentURI, sysCacheDir string) lsp.DocumentURI 
 }
 
 func serverToClientURI(uri lsp.DocumentURI, sysCacheDir string) lsp.DocumentURI {
+	if !*cloneToCache {
+		return uri
+	}
+
 	// sysCacheDir needs to be converted from a local path to a URI path
 	cacheDir := filepath.ToSlash(sysCacheDir)
 
