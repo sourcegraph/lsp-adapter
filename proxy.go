@@ -32,6 +32,7 @@ var (
 	didOpenLanguage    = flag.String("didOpenLanguage", "", "(HACK) If non-empty, send 'textDocument/didOpen' notifications with the specified language field (e.x. 'python') to the language server for every file.")
 	jsonrpc2IDRewrite  = flag.String("jsonrpc2IDRewrite", "none", "(HACK) Rewrite jsonrpc2 ID. none (default) is no rewriting. string will use a string ID. number will use number ID. Useful for language servers with non-spec complaint JSONRPC2 implementations.")
 	glob               = flag.String("glob", "", "A colon (:) separated list of file globs to sync locally. By default we place all files into the workspace, but some language servers may only look at a subset of files. Specifying this allows us to avoid syncing all files. Note: This is done by basename only.")
+	beforeInitHook     = flag.String("beforeInitializeHook", "", "A program to run after cloning the repository, but before the 'initialize' call is forwarded to the language server. (For example, you can use this to run a script to install dependencies for the project). The program's cwd will be the workspace's cache directory, and it will also be passed the cache directory as an argument.")
 	trace              = flag.Bool("trace", true, "trace logs to stderr")
 )
 
@@ -210,6 +211,11 @@ func (p *cloneProxy) handleClientRequest(ctx context.Context, conn *jsonrpc2.Con
 		if err := p.cloneWorkspaceToCache(globs); err != nil {
 			log.Println("CloneProxy.handleClientRequest(): cloning workspace failed during initialize", err)
 			return
+		}
+		if *beforeInitHook != "" {
+			if err := p.runHook(ctx, *beforeInitHook); err != nil {
+				log.Println("CloneProxy.handleClientRequest(): running beforeInitializeHook failed", err)
+			}
 		}
 	}
 
