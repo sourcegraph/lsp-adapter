@@ -18,7 +18,7 @@ RUN apt-get update \
   && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF \
   && apt-get update && apt-get install --no-install-recommends -y apt-transport-https \
   # OmniSharp runs on Mono and requires the .NET SDK 2.0.0.
-  && apt-get update && apt-get install --no-install-recommends -y mono-complete dotnet-sdk-2.0.0 nodejs \
+  && apt-get update && apt-get install --no-install-recommends -y mono-complete dotnet-sdk-2.0.0 nuget nodejs \
   # Removes ~1 GB of unused files.
   && rm -rf /usr/share/dotnet/sdk/NuGetFallbackFolder \
   && rm -rf /var/lib/apt/lists/* \
@@ -42,4 +42,6 @@ ENTRYPOINT ["/tini", "--"]
 
 EXPOSE 8080
 COPY --from=lsp-adapter /usr/local/bin/lsp-adapter /usr/local/bin/
-CMD ["lsp-adapter", "-trace", "-proxyAddress=0.0.0.0:8080", "nodejs", "/usr/lib/node_modules/omnisharp-client/languageserver/server.js"]
+COPY --from=lsp-adapter /go/src/github.com/sourcegraph/lsp-adapter/dockerfiles/csharp/restore.sh /restore.sh
+RUN chmod u+x /restore.sh
+CMD ["lsp-adapter", "-trace", "-beforeInitializeHook=/restore.sh", "-proxyAddress=0.0.0.0:8080", "nodejs", "/usr/lib/node_modules/omnisharp-client/languageserver/server.js"]
