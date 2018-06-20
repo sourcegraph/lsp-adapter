@@ -18,8 +18,10 @@ import (
 //    - used as the cwd for "program"
 func (p *cloneProxy) runHook(ctx context.Context, program string) error {
 	cmd := exec.CommandContext(ctx, program, p.workspaceCacheDir())
+
 	cmd.Dir = p.workspaceCacheDir()
 	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	log.Printf("Running pre-init hook: '%s %s'\n", program, p.workspaceCacheDir())
 	err := cmd.Run()
