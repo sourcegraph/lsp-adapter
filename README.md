@@ -29,26 +29,30 @@ Running `lsp-adapter --help` shows you some of its options:
 Usage: lsp-adapter [OPTIONS] LSP_COMMAND_ARGS...
 
 Options:
+  -beforeInitializeHook string
+    	A program to run after cloning the repository, but before the 'initialize' call is forwarded to the language server. (For example, you can use this to run a script to install dependencies for the project). The program's cwd will be the workspace's cache directory, and it will also be passed the cache directory as an argument.
   -cacheDirectory string
-      cache directory location (default "/tmp/proxy-cache")
+    	cache directory location (default "/var/folders/qq/1q_cmsmx6qv7bs_m6g_2pt1r0000gn/T/proxy-cache")
   -didOpenLanguage string
-      (HACK) If non-empty, send 'textDocument/didOpen' notifications with the specified language field (e.x. 'python') to the language server for every file.
+    	(HACK) If non-empty, send 'textDocument/didOpen' notifications with the specified language field (e.x. 'python') to the language server for every file.
   -glob string
-      A colon (:) separated list of file globs to sync locally. By default we place all files into the workspace, but some language servers may only look at a subset of files. Specifying this allows us to avoid syncing all files. Note: This is done by basename only.
+    	A colon (:) separated list of file globs to sync locally. By default we place all files into the workspace, but some language servers may only look at a subset of files. Specifying this allows us to avoid syncing all files. Note: This is done by basename only.
   -jsonrpc2IDRewrite string
-      (HACK) Rewrite jsonrpc2 ID. none (default) is no rewriting. string will use a string ID. number will use a number ID. Useful for language servers with non-spec complaint JSONRPC2 implementations. (default "none")
+    	(HACK) Rewrite jsonrpc2 ID. none (default) is no rewriting. string will use a string ID. number will use number ID. Useful for language servers with non-spec complaint JSONRPC2 implementations. (default "none")
+  -pprofAddr string
+    	server listen address for pprof
   -proxyAddress string
-      proxy server listen address (tcp) (default "127.0.0.1:8080")
+    	proxy server listen address (tcp) (default "127.0.0.1:8080")
   -trace
-      trace logs to stderr
+    	trace logs to stderr (default true)
 ```
+
 ## How to Use `lsp-adapter`
 
 `lsp-adapter` proxies requests between your Sourcegraph instance and the language server, and modifies them in such a way that allows for the two to communicate correctly. In order to do this, we need to know
 
 - How to connect `lsp-adapter` to the language server
 - How to connect to your Sourcegraph instance to `lsp-adapter`
-
 
 ### Connect `lsp-adapter` to the Language Server
 
@@ -64,19 +68,19 @@ lsp-adapter rls
 
 Any stderr output from the binary will also appear in `lsp-adapter`'s logs.
 
-
 ### Connect Sourcegraph to `lsp-adapter`
 
-1. Use the `-proxyAddress` flag to tell `lsp-adapter` what address to listen for connections from Sourcegraph on. For example, I can tell `lsp-adapter` to listen on my local `8080` port with `-proxyAddress=127.0.0.1:8080`.
+1.  Use the `-proxyAddress` flag to tell `lsp-adapter` what address to listen for connections from Sourcegraph on. For example, I can tell `lsp-adapter` to listen on my local `8080` port with `-proxyAddress=127.0.0.1:8080`.
 
-2. We then need to add a new entry to the `"langservers"` field in the site configuration in order to point Sourcegraph at `lsp-adapter` (similar to the steps in [this document](https://about.sourcegraph.com/docs/code-intelligence/install-manual)). For example, if `lsp-adapter` is connected to the Rust language server, and the `lsp-adapter` itself is listening on `127.0.0.1:8080`:
+2.  We then need to add a new entry to the `"langservers"` field in the site configuration in order to point Sourcegraph at `lsp-adapter` (similar to the steps in [this document](https://about.sourcegraph.com/docs/code-intelligence/install-manual)). For example, if `lsp-adapter` is connected to the Rust language server, and the `lsp-adapter` itself is listening on `127.0.0.1:8080`:
 
 ```json
 {
-    "language": "rust",
-    "address": "tcp://127.0.0.1:8080"
+  "language": "rust",
+  "address": "tcp://127.0.0.1:8080"
 }
 ```
+
 would be the new entry that needs to be added to the `"langservers"` field.
 
 ## Example Commands
@@ -111,7 +115,30 @@ Most language servers will only ever look at files that match a set of known pat
 
 Some language servers do not follow the LSP spec correctly and refuse to work unless the `textDocument/didOpen` notification has been sent. See [this commit](https://github.com/sourcegraph/lsp-adapter/commit/1228a1fbaf102aa44575cec6802a5a211d117ee1) for more context. If the language server that you’re trying to use has this issue, try setting the `didOpenLanguage` flag (example: if a python language server had this issue - use `./lsp-adapter -didOpenLanguage=python ...`) to work around it.
 
-
 ## JSONRPC2 ID Rewrite Hack
 
 Some language servers do not follow the JSONRPC2 spec correctly and fail if the Request ID is not a number of string. If the language server that you’re trying to use has this issue, try setting the `jsonrpc2IDRewrite` flag (example: if a rust language server had this issue - use `./lsp-adapter -jsonrpc2IDRewrite=number ...`) to work around it.
+
+## Before Initialization Hook
+
+Some language servers need to run setup scripts (to install dependencies, for example) in order to provide code intelligence. By using the `-beforeInitializeHook` flag, you can specify a program/script that will run after the repository is cloned to workspace's cache directory, but before the language server receives the `initalize` request. The program's `cwd` will be the cache directory (which will also be passed as an argument for convenience).
+
+For example, if you have the following script named `hook.sh`:
+
+```shell
+#!/bin/sh
+set -x
+echo $(pwd)
+```
+
+After specifying the hook via `lsp-adapter -beforeInitializeHook='/test.sh'` You will see output like
+
+```shell
+2018/06/20 21:11:45 uris.go:25: Cloned workspace to /tmp/proxy-cache/3bb76102-a73b-4442-a03e-930c59e1fdcb
+2018/06/20 21:11:45 hook.go:26: Running pre-init hook: '/test.sh /tmp/proxy-cache/3bb76102-a73b-4442-a03e-930c59e1fdcb'
+++ pwd
++ echo /Users/ggilmore/dev/go/src/github.com/sourcegraph/lsp-adapter
+/Users/ggilmore/dev/go/src/github.com/sourcegraph/lsp-adapter
+```
+
+every time the language sever receives an `initialize` request. Obviously, you should replace this script with something meaningful.
