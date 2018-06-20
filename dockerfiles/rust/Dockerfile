@@ -4,6 +4,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-adapter
 
 FROM rust:jessie
+RUN rustup default nightly
 RUN rustup update
 RUN rustup component add rls-preview rust-analysis rust-src
 
