@@ -215,7 +215,6 @@ func (p *cloneProxy) handleClientRequest(ctx context.Context, conn *jsonrpc2.Con
 		if *beforeInitHook != "" {
 			if err := p.runHook(ctx, *beforeInitHook); err != nil {
 				log.Println("CloneProxy.handleClientRequest(): running beforeInitializeHook failed", err)
-				return
 			}
 		}
 	}
