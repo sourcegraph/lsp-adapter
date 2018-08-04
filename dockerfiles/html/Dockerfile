@@ -3,9 +3,6 @@ WORKDIR /go/src/github.com/sourcegraph/lsp-adapter
 COPY . .
 RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-adapter
 
-# 👀 Add steps here to build the language server itself 👀
-# CMD ["echo", "🚨 This statement should be removed once you have added the logic to start up the language server! 🚨 Exiting..."]
-
 FROM node:9
 
 # Use tini as entrypoint to correctly handle signals and zombie processes.
@@ -18,7 +15,16 @@ USER node
 # see https://github.com/nodejs/docker-node/blob/master/docs/BestPractices.md#global-npm-dependencies
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV PATH=$PATH:/home/node/.npm-global/bin
-RUN npm i -g vscode-html-languageserver-bin@1.3.0
+# Ignore the warning about using WORKDIR instead of cd for convenience.
+# hadolint ignore=DL3003
+RUN cd "$HOME" \
+  && git clone https://github.com/chrismwendt/vscode-html-languageserver-bin --recursive \
+  && cd vscode-html-languageserver-bin \
+  && git checkout 5e34582126c02387b490d7cbadacc45020bc70f4 \
+  && npm install \
+  && npm run build \
+  && cd dist \
+  && npm install --global
 
 COPY --from=lsp-adapter /usr/local/bin/lsp-adapter /usr/local/bin
 EXPOSE 8080
