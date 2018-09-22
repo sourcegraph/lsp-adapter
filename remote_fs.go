@@ -147,7 +147,7 @@ func (fs *remoteFS) Clone(ctx context.Context, baseDir string, globs []string) (
 		parentDir := filepath.Dir(newFilePath)
 
 		if err := os.MkdirAll(parentDir, os.ModePerm); err != nil {
-			return errors.Wrapf(err, "failed to make parent dirs for %s")
+			return errors.Wrapf(err, "failed to make parent dirs for %s", newFilePath)
 		}
 
 		if err := ioutil.WriteFile(newFilePath, []byte(file.content), os.ModePerm); err != nil {
