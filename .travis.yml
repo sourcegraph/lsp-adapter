@@ -4,6 +4,9 @@ go:
   - 1.10.x
   - 1.11.x
 
+env:
+  - GO111MODULE=on
+
 # Base configuration for the jobs that release the codeintel Docker images to DockerHub.
 # Referenced further down.
 codeintel_image_release_job: &codeintel_image_release_job
