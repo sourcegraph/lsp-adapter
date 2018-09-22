@@ -2,6 +2,7 @@ language: go
 
 go:
   - 1.10.x
+  - 1.11.x
 
 # Base configuration for the jobs that release the codeintel Docker images to DockerHub.
 # Referenced further down.
@@ -15,8 +16,8 @@ codeintel_image_release_job: &codeintel_image_release_job
 
 jobs:
   include:
-    # Test lsp-adapter and lint Dockerfiles
-    - stage: test
+    # Lint lsp-adapter and Dockerfiles
+    - stage: lint
       install:
         - go get -v golang.org/x/tools/cmd/goimports
         - curl -sL -o ~/hadolint "https://github.com/hadolint/hadolint/releases/download/v1.6.5/hadolint-$(uname -s)-$(uname -m)" && chmod 700 ~/hadolint
@@ -26,8 +27,14 @@ jobs:
       script:
         - test -z $(goimports -d $GO_FILES) # this test asserts import ordering
         - test -z $(gofmt -s -d $GO_FILES)
-        - go test -v ./...
         - ~/hadolint dockerfiles/*/Dockerfile
+    # Test lsp-adapter
+    - stage: "test: go 1.11.x"
+      go: 1.11.x
+      script: go test -v -mod=vendor ./...
+    - stage: "test: go 1.10.x"
+      go: 1.10.x
+      script: go test -v ./...
     # Release lsp-adapter (only on tags)
     - stage: release
       if: tag =~ ^v AND fork = false
