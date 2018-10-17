@@ -16,3 +16,4 @@ github.com/sourcegraph/jsonrpc2 v0.0.0-20180501180217-a3d86c792f0f h1:mHcjtPCPBj
 github.com/sourcegraph/jsonrpc2 v0.0.0-20180501180217-a3d86c792f0f/go.mod h1:eESpbCslcLDs8j2D7IEdGVgul7xuk9odqDTaor30IUU=
 golang.org/x/net v0.0.0-20180420171651-5f9ae10d9af5 h1:ylIG3jIeS45kB0W95N19kS62fwermjMYLIyybf8xh9M=
 golang.org/x/net v0.0.0-20180420171651-5f9ae10d9af5/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
+golang.org/x/net v0.0.0-20181017200704-04a2e542c03f/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
