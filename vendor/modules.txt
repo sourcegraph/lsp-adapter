@@ -1,6 +1,6 @@
 # github.com/google/uuid v0.0.0-20161128191214-064e2069ce9c
 github.com/google/uuid
-# github.com/hashicorp/errwrap v0.0.0-20141028054710-7554cd9344ce
+# github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
 # github.com/hashicorp/go-multierror v0.0.0-20171204182908-b7773ae21874
 github.com/hashicorp/go-multierror
