@@ -1,5 +1,7 @@
 module github.com/sourcegraph/lsp-adapter
 
+go 1.14
+
 require (
 	github.com/google/uuid v0.0.0-20161128191214-064e2069ce9c
 	github.com/gorilla/websocket v1.4.1 // indirect
