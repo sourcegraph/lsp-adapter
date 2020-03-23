@@ -17,8 +17,8 @@ func TestProbablyFileURI(t *testing.T) {
 	tests := map[string]bool{
 		"file:///a.py":               true,
 		"file:///a.py#line=1,char=2": true,
-		"/a.py":    true,
-		"file:///": true,
+		"/a.py":                      true,
+		"file:///":                   true,
 
 		// We don't want to rewrite uris with an explicit non-file scheme
 		"git:///a.py": false,
