@@ -1,4 +1,4 @@
-FROM golang:1.10-alpine
+FROM golang:1.14-alpine
 WORKDIR /go/src/github.com/sourcegraph/lsp-adapter
 COPY . .
 RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-adapter
