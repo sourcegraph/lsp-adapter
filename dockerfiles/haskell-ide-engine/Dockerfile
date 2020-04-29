@@ -3,7 +3,7 @@
 # The compilation process requires more than 3 GB of RAM, so make sure you set
 # your Docker preferences to ~8 GB of RAM before building this image.
 
-FROM ubuntu:16.04
+FROM ubuntu:16.10
 
 ARG STACK_VERSION=1.7.1
 

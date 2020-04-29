@@ -5,7 +5,7 @@ RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-ada
 
 # .NET Core 2.0.0 is not available on Alpine yet, but it is actively being
 # worked on: https://github.com/dotnet/core/issues/1076
-FROM ubuntu:16.04
+FROM ubuntu:16.10
 
 RUN apt-get update \
   && apt-get install --no-install-recommends -y ca-certificates gnupg curl jq \
