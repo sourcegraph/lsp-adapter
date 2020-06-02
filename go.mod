@@ -11,5 +11,5 @@ require (
 	github.com/pkg/errors v0.8.0
 	github.com/sourcegraph/go-langserver v0.0.0-20180410094615-6d56335e3448
 	github.com/sourcegraph/jsonrpc2 v0.0.0-20180501180217-a3d86c792f0f
-	golang.org/x/net v0.0.0-20180420171651-5f9ae10d9af5
+	golang.org/x/net v0.0.0-20200602114024-627f9648deb9
 )
