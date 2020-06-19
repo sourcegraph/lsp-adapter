@@ -2,9 +2,14 @@ package jsonrpc2
 
 import (
 	"encoding/json"
-	"log"
 	"sync"
 )
+
+// Logger interface implements one method - Printf.
+// You can use the stdlib logger *log.Logger
+type Logger interface {
+	Printf(format string, v ...interface{})
+}
 
 // ConnOpt is the type of function that can be passed to NewConn to
 // customize the Conn before it is created.
@@ -24,7 +29,7 @@ func OnSend(f func(*Request, *Response)) ConnOpt {
 
 // LogMessages causes all messages sent and received on conn to be
 // logged using the provided logger.
-func LogMessages(log *log.Logger) ConnOpt {
+func LogMessages(logger Logger) ConnOpt {
 	return func(c *Conn) {
 		// Remember reqs we have received so we can helpfully show the
 		// request method in OnSend for responses.
@@ -33,18 +38,21 @@ func LogMessages(log *log.Logger) ConnOpt {
 			reqMethods = map[ID]string{}
 		)
 
+		// Set custom logger from provided input
+		c.logger = logger
+
 		OnRecv(func(req *Request, resp *Response) {
 			switch {
-			case req != nil && resp == nil:
+			case req != nil:
 				mu.Lock()
 				reqMethods[req.ID] = req.Method
 				mu.Unlock()
 
 				params, _ := json.Marshal(req.Params)
 				if req.Notif {
-					log.Printf("--> notif: %s: %s", req.Method, params)
+					logger.Printf("jsonrpc2: --> notif: %s: %s\n", req.Method, params)
 				} else {
-					log.Printf("--> request #%s: %s: %s", req.ID, req.Method, params)
+					logger.Printf("jsonrpc2: --> request #%s: %s: %s\n", req.ID, req.Method, params)
 				}
 
 			case resp != nil:
@@ -57,10 +65,10 @@ func LogMessages(log *log.Logger) ConnOpt {
 				switch {
 				case resp.Result != nil:
 					result, _ := json.Marshal(resp.Result)
-					log.Printf("--> result #%s: %s: %s", resp.ID, method, result)
+					logger.Printf("jsonrpc2: --> result #%s: %s: %s\n", resp.ID, method, result)
 				case resp.Error != nil:
 					err, _ := json.Marshal(resp.Error)
-					log.Printf("--> error #%s: %s: %s", resp.ID, method, err)
+					logger.Printf("jsonrpc2: --> error #%s: %s: %s\n", resp.ID, method, err)
 				}
 			}
 		})(c)
@@ -69,9 +77,9 @@ func LogMessages(log *log.Logger) ConnOpt {
 			case req != nil:
 				params, _ := json.Marshal(req.Params)
 				if req.Notif {
-					log.Printf("<-- notif: %s: %s", req.Method, params)
+					logger.Printf("jsonrpc2: <-- notif: %s: %s\n", req.Method, params)
 				} else {
-					log.Printf("<-- request #%s: %s: %s", req.ID, req.Method, params)
+					logger.Printf("jsonrpc2: <-- request #%s: %s: %s\n", req.ID, req.Method, params)
 				}
 
 			case resp != nil:
@@ -85,10 +93,10 @@ func LogMessages(log *log.Logger) ConnOpt {
 
 				if resp.Result != nil {
 					result, _ := json.Marshal(resp.Result)
-					log.Printf("<-- result #%s: %s: %s", resp.ID, method, result)
+					logger.Printf("jsonrpc2: <-- result #%s: %s: %s\n", resp.ID, method, result)
 				} else {
 					err, _ := json.Marshal(resp.Error)
-					log.Printf("<-- error #%s: %s: %s", resp.ID, method, err)
+					logger.Printf("jsonrpc2: <-- error #%s: %s: %s\n", resp.ID, method, err)
 				}
 			}
 		})(c)
