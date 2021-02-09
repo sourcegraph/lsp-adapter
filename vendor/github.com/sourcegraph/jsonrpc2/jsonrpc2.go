@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"strconv"
 	"sync"
 )
@@ -84,11 +85,12 @@ func (r *Request) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	r.Method = r2.Method
-	if r2.Params == nil {
+	switch {
+	case r2.Params == nil:
 		r.Params = &jsonNull
-	} else if len(*r2.Params) == 0 {
+	case len(*r2.Params) == 0:
 		r.Params = nil
-	} else {
+	default:
 		r.Params = r2.Params
 	}
 	r.Meta = r2.Meta
@@ -212,22 +214,20 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("jsonrpc2: code %v message: %s", e.Code, e.Message)
 }
 
+// Errors defined in the JSON-RPC spec. See
+// http://www.jsonrpc.org/specification#error_object.
 const (
-	// Errors defined in the JSON-RPC spec. See
-	// http://www.jsonrpc.org/specification#error_object.
-	CodeParseError       = -32700
-	CodeInvalidRequest   = -32600
-	CodeMethodNotFound   = -32601
-	CodeInvalidParams    = -32602
-	CodeInternalError    = -32603
-	codeServerErrorStart = -32099
-	codeServerErrorEnd   = -32000
+	CodeParseError     = -32700
+	CodeInvalidRequest = -32600
+	CodeMethodNotFound = -32601
+	CodeInvalidParams  = -32602
+	CodeInternalError  = -32603
 )
 
 // Handler handles JSON-RPC requests and notifications.
 type Handler interface {
 	// Handle is called to handle a request. No other requests are handled
-	// until it returns. If you do not require strict ordering behaviour
+	// until it returns. If you do not require strict ordering behavior
 	// of received RPCs, it is suggested to wrap your handler in
 	// AsyncHandler.
 	Handle(context.Context, *Conn, *Request)
@@ -297,6 +297,8 @@ type Conn struct {
 
 	disconnect chan struct{}
 
+	logger Logger
+
 	// Set by ConnOpt funcs.
 	onRecv []func(*Request, *Response)
 	onSend []func(*Request, *Response)
@@ -315,14 +317,18 @@ var ErrClosed = errors.New("jsonrpc2: connection is closed")
 //
 // NewClient consumes conn, so you should call Close on the returned
 // client not on the given conn.
-func NewConn(ctx context.Context, stream ObjectStream, h Handler, opt ...ConnOpt) *Conn {
+func NewConn(ctx context.Context, stream ObjectStream, h Handler, opts ...ConnOpt) *Conn {
 	c := &Conn{
 		stream:     stream,
 		h:          h,
 		pending:    map[ID]*call{},
 		disconnect: make(chan struct{}),
+		logger:     log.New(os.Stderr, "", log.LstdFlags),
 	}
-	for _, opt := range opt {
+	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
 		opt(c)
 	}
 	go c.readMessages(ctx)
@@ -342,7 +348,7 @@ func (c *Conn) Close() error {
 	return c.stream.Close()
 }
 
-func (c *Conn) send(ctx context.Context, m *anyMessage, wait bool) (cc *call, err error) {
+func (c *Conn) send(_ context.Context, m *anyMessage, wait bool) (cc *call, err error) {
 	c.sending.Lock()
 	defer c.sending.Unlock()
 
@@ -410,21 +416,50 @@ func (c *Conn) send(ctx context.Context, m *anyMessage, wait bool) (cc *call, er
 // its result is stored in result (a pointer to a value that can be
 // JSON-unmarshaled into); otherwise, a non-nil error is returned.
 func (c *Conn) Call(ctx context.Context, method string, params, result interface{}, opts ...CallOption) error {
-	req := &Request{Method: method}
-	if err := req.SetParams(params); err != nil {
+	call, err := c.DispatchCall(ctx, method, params, opts...)
+	if err != nil {
 		return err
 	}
+	return call.Wait(ctx, result)
+}
+
+// DispatchCall dispatches a JSON-RPC call using the specified method
+// and params, and returns a call proxy or an error. Call Wait()
+// on the returned proxy to receive the response. Only use this
+// function if you need to do work after dispatching the request,
+// otherwise use Call.
+func (c *Conn) DispatchCall(ctx context.Context, method string, params interface{}, opts ...CallOption) (Waiter, error) {
+	req := &Request{Method: method}
+	if err := req.SetParams(params); err != nil {
+		return Waiter{}, err
+	}
 	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
 		if err := opt.apply(req); err != nil {
-			return err
+			return Waiter{}, err
 		}
 	}
 	call, err := c.send(ctx, &anyMessage{request: req}, true)
 	if err != nil {
-		return err
+		return Waiter{}, err
 	}
+	return Waiter{call: call}, nil
+}
+
+// Waiter proxies an ongoing JSON-RPC call.
+type Waiter struct {
+	*call
+}
+
+// Wait for the result of an ongoing JSON-RPC call. If the response
+// is successful, its result is stored in result (a pointer to a
+// value that can be JSON-unmarshaled into); otherwise, a non-nil
+// error is returned.
+func (w Waiter) Wait(ctx context.Context, result interface{}) error {
 	select {
-	case err, ok := <-call.done:
+	case err, ok := <-w.call.done:
 		if !ok {
 			err = ErrClosed
 		}
@@ -432,11 +467,10 @@ func (c *Conn) Call(ctx context.Context, method string, params, result interface
 			return err
 		}
 		if result != nil {
-			if call.response.Result == nil {
-				call.response.Result = &jsonNull
+			if w.call.response.Result == nil {
+				w.call.response.Result = &jsonNull
 			}
-			// TODO(sqs): error handling
-			if err := json.Unmarshal(*call.response.Result, result); err != nil {
+			if err := json.Unmarshal(*w.call.response.Result, result); err != nil {
 				return err
 			}
 		}
@@ -458,6 +492,9 @@ func (c *Conn) Notify(ctx context.Context, method string, params interface{}, op
 		return err
 	}
 	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
 		if err := opt.apply(req); err != nil {
 			return err
 		}
@@ -535,7 +572,7 @@ func (c *Conn) readMessages(ctx context.Context) {
 
 				switch {
 				case call == nil:
-					log.Printf("jsonrpc2: ignoring response #%s with no corresponding request", id)
+					c.logger.Printf("jsonrpc2: ignoring response #%s with no corresponding request\n", id)
 
 				case resp.Error != nil:
 					call.done <- resp.Error
@@ -567,7 +604,7 @@ func (c *Conn) readMessages(ctx context.Context) {
 	c.mu.Unlock()
 	c.sending.Unlock()
 	if err != io.ErrUnexpectedEOF && !closing {
-		log.Println("jsonrpc2: protocol error:", err)
+		c.logger.Printf("jsonrpc2: protocol error: %v\n", err)
 	}
 	close(c.disconnect)
 }
@@ -633,17 +670,22 @@ func (m *anyMessage) UnmarshalJSON(data []byte) error {
 		if len(msgs) == 0 {
 			return errors.New("jsonrpc2: invalid empty batch")
 		}
-		for _, msg := range msgs {
-			if err := checkType(&msg); err != nil {
+		for i := range msgs {
+			if err := checkType(&msg{
+				ID:     msgs[i].ID,
+				Method: msgs[i].Method,
+				Result: msgs[i].Result,
+				Error:  msgs[i].Error,
+			}); err != nil {
 				return err
 			}
 		}
 	} else {
-		var msg msg
-		if err := json.Unmarshal(data, &msg); err != nil {
+		var m msg
+		if err := json.Unmarshal(data, &m); err != nil {
 			return err
 		}
-		if err := checkType(&msg); err != nil {
+		if err := checkType(&m); err != nil {
 			return err
 		}
 	}
@@ -684,8 +726,3 @@ func (v *anyValueWithExplicitNull) UnmarshalJSON(data []byte) error {
 	*v = anyValueWithExplicitNull{}
 	return json.Unmarshal(data, &v.value)
 }
-
-var (
-	errInvalidRequestJSON  = errors.New("jsonrpc2: request must be either a JSON object or JSON array")
-	errInvalidResponseJSON = errors.New("jsonrpc2: response must be either a JSON object or JSON array")
-)
