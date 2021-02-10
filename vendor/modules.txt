@@ -1,19 +1,28 @@
 # github.com/google/uuid v0.0.0-20161128191214-064e2069ce9c
+## explicit
 github.com/google/uuid
-# github.com/hashicorp/errwrap v0.0.0-20141028054710-7554cd9344ce
+# github.com/gorilla/websocket v1.4.1
+## explicit
+# github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-multierror v0.0.0-20171204182908-b7773ae21874
+# github.com/hashicorp/go-multierror v1.1.0
+## explicit
 github.com/hashicorp/go-multierror
 # github.com/neelance/parallel v0.0.0-20160708114440-4de9ce63d14c
+## explicit
 github.com/neelance/parallel
 # github.com/pkg/errors v0.8.0
+## explicit
 github.com/pkg/errors
 # github.com/sourcegraph/go-langserver v0.0.0-20180410094615-6d56335e3448
+## explicit
 github.com/sourcegraph/go-langserver/pkg/lsp
 github.com/sourcegraph/go-langserver/pkg/lspext
 # github.com/sourcegraph/jsonrpc2 v0.0.0-20180501180217-a3d86c792f0f
+## explicit
 github.com/sourcegraph/jsonrpc2
 # golang.org/x/net v0.0.0-20180420171651-5f9ae10d9af5
-golang.org/x/net/trace
+## explicit
 golang.org/x/net/context
 golang.org/x/net/internal/timeseries
+golang.org/x/net/trace
