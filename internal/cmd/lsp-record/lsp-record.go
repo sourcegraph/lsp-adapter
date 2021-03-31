@@ -11,7 +11,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -250,7 +249,7 @@ func newVFSHandler(ar *zip.ReadCloser) jsonrpc2HandlerFunc {
 						return nil, err
 					}
 					defer rc.Close()
-					b, err := ioutil.ReadAll(rc)
+					b, err := io.ReadAll(rc)
 					if err != nil {
 						return nil, err
 					}

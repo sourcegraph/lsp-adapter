@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
@@ -150,7 +149,7 @@ func (fs *remoteFS) Clone(ctx context.Context, baseDir string, globs []string) (
 			return errors.Wrapf(err, "failed to make parent dirs for %s", newFilePath)
 		}
 
-		if err := ioutil.WriteFile(newFilePath, []byte(file.content), os.ModePerm); err != nil {
+		if err := os.WriteFile(newFilePath, []byte(file.content), os.ModePerm); err != nil {
 			return errors.Wrapf(err, "failed to write file content for %s", newFilePath)
 		}
 	}

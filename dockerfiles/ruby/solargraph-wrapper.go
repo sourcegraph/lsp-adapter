@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/url"
 	"os"
@@ -138,7 +137,7 @@ func startSolargraph(ctx context.Context, dir string) (func() error, int, error)
 		if strings.HasPrefix(word, "PORT=") {
 			// We are done with scanning, but we need to keep reading stderr
 			// to prevent it blocking the process.
-			go io.Copy(ioutil.Discard, stderr)
+			go io.Copy(io.Discard, stderr)
 
 			port, err := strconv.Atoi(word[len("PORT="):])
 			if err != nil {

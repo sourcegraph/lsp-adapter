@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/url"
 	"os"
@@ -80,7 +79,7 @@ func TestClone(t *testing.T) {
 
 	for _, tt := range cases {
 		t.Run(tt.Name, func(t *testing.T) {
-			baseDir, err := ioutil.TempDir("", uuid.New().String()+"testClone")
+			baseDir, err := os.MkdirTemp("", uuid.New().String()+"testClone")
 			if err != nil {
 				t.Fatalf("when creating temp directory for clone test, err: %v", err)
 			}
@@ -118,7 +117,7 @@ func findAll(baseDir string) (map[string]string, error) {
 			return err
 		}
 
-		content, err := ioutil.ReadFile(currPath)
+		content, err := os.ReadFile(currPath)
 		if err != nil {
 			return err
 		}

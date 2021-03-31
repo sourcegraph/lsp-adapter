@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/url"
@@ -253,7 +252,7 @@ func (p *cloneProxy) handleClientRequest(ctx context.Context, conn *jsonrpc2.Con
 					p.didOpenMu.Unlock()
 
 					if !sent {
-						b, err := ioutil.ReadFile(parsedURI.Path)
+						b, err := os.ReadFile(parsedURI.Path)
 						if err == nil {
 							err = p.server.Notify(ctx, "textDocument/didOpen", &lsp.DidOpenTextDocumentParams{
 								TextDocument: lsp.TextDocumentItem{
