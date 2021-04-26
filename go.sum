@@ -14,5 +14,7 @@ github.com/sourcegraph/go-langserver v0.0.0-20180410094615-6d56335e3448 h1:1qFoN
 github.com/sourcegraph/go-langserver v0.0.0-20180410094615-6d56335e3448/go.mod h1:bBMjfpzEHd6ijPRoQ7f+knFfw+e8R+W158/MsqAy77c=
 github.com/sourcegraph/jsonrpc2 v0.0.0-20180501180217-a3d86c792f0f h1:mHcjtPCPBj4hKeRIwIU/R+Tn6TEBvDZPQnhOquzzAgA=
 github.com/sourcegraph/jsonrpc2 v0.0.0-20180501180217-a3d86c792f0f/go.mod h1:eESpbCslcLDs8j2D7IEdGVgul7xuk9odqDTaor30IUU=
+github.com/sourcegraph/jsonrpc2 v0.0.0-20210426071334-99f63e011f8c h1:LbhPjcoinB2FThgX2qlN6sQ1OnhBWLumUzPRcid67n0=
+github.com/sourcegraph/jsonrpc2 v0.0.0-20210426071334-99f63e011f8c/go.mod h1:ZafdZgk/axhT1cvZAPOhw+95nz2I/Ra5qMlU4gTRwIo=
 golang.org/x/net v0.0.0-20180420171651-5f9ae10d9af5 h1:ylIG3jIeS45kB0W95N19kS62fwermjMYLIyybf8xh9M=
 golang.org/x/net v0.0.0-20180420171651-5f9ae10d9af5/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
