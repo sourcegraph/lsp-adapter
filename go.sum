@@ -10,6 +10,8 @@ github.com/neelance/parallel v0.0.0-20160708114440-4de9ce63d14c h1:NZOii9TDGRAfC
 github.com/neelance/parallel v0.0.0-20160708114440-4de9ce63d14c/go.mod h1:eTBvSIlRgLo+CNFFQRQTwUGTZOEdvXIKeZS/xG+D2yU=
 github.com/pkg/errors v0.8.0 h1:WdK/asTD0HN+q6hsWO3/vpuAkAr+tw6aNJNDFFf0+qw=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/sourcegraph/go-langserver v0.0.0-20180410094615-6d56335e3448 h1:1qFoNxoScesRx3mnpcea0xDVdbosdZcH4XQSLDNvvxM=
 github.com/sourcegraph/go-langserver v0.0.0-20180410094615-6d56335e3448/go.mod h1:bBMjfpzEHd6ijPRoQ7f+knFfw+e8R+W158/MsqAy77c=
 github.com/sourcegraph/jsonrpc2 v0.0.0-20180501180217-a3d86c792f0f h1:mHcjtPCPBj4hKeRIwIU/R+Tn6TEBvDZPQnhOquzzAgA=
