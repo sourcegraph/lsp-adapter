@@ -6,7 +6,7 @@ RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-ada
 # 👀 Add steps here to build the language server itself 👀
 # CMD ["echo", "🚨 This statement should be removed once you have added the logic to start up the language server! 🚨 Exiting..."]
 
-FROM elixir:1.6
+FROM elixir:1.12
 
 # Use tini as entrypoint to correctly handle signals and zombie processes.
 ENV TINI_VERSION v0.18.0
