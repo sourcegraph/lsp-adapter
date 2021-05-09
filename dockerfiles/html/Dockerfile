@@ -3,7 +3,7 @@ WORKDIR /go/src/github.com/sourcegraph/lsp-adapter
 COPY . .
 RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-adapter
 
-FROM node:9
+FROM node:16
 
 # Use tini as entrypoint to correctly handle signals and zombie processes.
 ENV TINI_VERSION v0.18.0
