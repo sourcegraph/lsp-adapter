@@ -10,6 +10,6 @@ require (
 	github.com/neelance/parallel v0.0.0-20160708114440-4de9ce63d14c
 	github.com/pkg/errors v0.8.0
 	github.com/sourcegraph/go-langserver v0.0.0-20180410094615-6d56335e3448
-	github.com/sourcegraph/jsonrpc2 v0.0.0-20180501180217-a3d86c792f0f
+	github.com/sourcegraph/jsonrpc2 v0.1.0
 	golang.org/x/net v0.0.0-20180420171651-5f9ae10d9af5
 )
