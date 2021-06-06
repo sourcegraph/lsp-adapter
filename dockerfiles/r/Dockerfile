@@ -6,7 +6,7 @@ RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-ada
 # 👀 Add steps here to build the language server itself 👀
 # CMD ["echo", "🚨 This statement should be removed once you have added the logic to start up the language server! 🚨 Exiting..."]
 
-FROM rocker/rstudio:3.5.1
+FROM rocker/rstudio:4.1.0
 
 RUN R -e 'chooseCRANmirror(graphics=FALSE, ind=65);source("https://install-github.me/REditorSupport/languageserver")'
 
