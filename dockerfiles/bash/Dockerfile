@@ -3,7 +3,7 @@ WORKDIR /go/src/github.com/sourcegraph/lsp-adapter
 COPY . .
 RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-adapter
 
-FROM mongo:3.7.9
+FROM mongo:4.4.6
 
 RUN apt-get update \
   && apt-get install --no-install-recommends -y curl \
