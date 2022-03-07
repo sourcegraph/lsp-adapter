@@ -4,7 +4,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOBIN=/usr/local/bin go install github.com/sourcegraph/lsp-adapter
 RUN CGO_ENABLED=0 go build -o /usr/local/bin/solargraph-wrapper dockerfiles/ruby/solargraph-wrapper.go
 
-FROM ruby:2.5
+FROM ruby:3.1
 
 RUN gem install solargraph
 
